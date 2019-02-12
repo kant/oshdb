@@ -3,7 +3,6 @@ package org.heigit.bigspatialdata.oshdb.api.object;
 import com.vividsolutions.jts.geom.Geometry;
 import java.util.EnumSet;
 import java.util.Objects;
-
 import org.heigit.bigspatialdata.oshdb.osh.OSHEntity;
 import org.heigit.bigspatialdata.oshdb.osm.OSMEntity;
 import org.heigit.bigspatialdata.oshdb.osm.OSMRelation;
@@ -16,16 +15,15 @@ import org.heigit.bigspatialdata.oshdb.util.celliterator.LazyEvaluatedObject;
 /**
  * Holds information about a single modification ("contribution") of a single entity in database.
  *
- * <p>
- * It holds the information about:
+ * <p>It holds the information about:
+ *
  * <ul>
- *   <li>the timestamp at which this change happened</li>
- *   <li>state of the entity before and after the modification</li>
- *   <li>the geometry of the entity before and after the modification</li>
+ *   <li>the timestamp at which this change happened
+ *   <li>state of the entity before and after the modification
+ *   <li>the geometry of the entity before and after the modification
  *   <li>the type(s) of change which has happened here (e.g. creation/deletion of an entity,
- *   modification of a geometry, altering of the tag list, etc.)</li>
+ *       modification of a geometry, altering of the tag list, etc.)
  * </ul>
- * </p>
  */
 public class OSMContribution implements OSHDBMapReducible {
   private final IterateAllEntry data;
@@ -34,26 +32,21 @@ public class OSMContribution implements OSHDBMapReducible {
     this.data = data;
   }
 
-  /**
-   * Creates a copy of the current entity snapshot with an updated geometry.
-   */
+  /** Creates a copy of the current entity snapshot with an updated geometry. */
   public OSMContribution(
-      OSMContribution other,
-      Geometry reclippedGeometryBefore,
-      Geometry reclippedGeometryAfter
-  ) {
-    this.data = new IterateAllEntry(
-        other.data.timestamp,
-        other.data.osmEntity,
-        other.data.previousOsmEntity,
-        other.data.oshEntity,
-        new LazyEvaluatedObject<>(reclippedGeometryAfter),
-        new LazyEvaluatedObject<>(reclippedGeometryBefore),
-        other.data.unclippedGeometry,
-        other.data.unclippedPreviousGeometry,
-        other.data.activities,
-        other.data.changeset
-    );
+      OSMContribution other, Geometry reclippedGeometryBefore, Geometry reclippedGeometryAfter) {
+    this.data =
+        new IterateAllEntry(
+            other.data.timestamp,
+            other.data.osmEntity,
+            other.data.previousOsmEntity,
+            other.data.oshEntity,
+            new LazyEvaluatedObject<>(reclippedGeometryAfter),
+            new LazyEvaluatedObject<>(reclippedGeometryBefore),
+            other.data.unclippedGeometry,
+            other.data.unclippedPreviousGeometry,
+            other.data.activities,
+            other.data.changeset);
   }
 
   /**
@@ -70,7 +63,7 @@ public class OSMContribution implements OSHDBMapReducible {
    * interest. May be `null` if this is an entity creation.
    *
    * @return a JTS Geometry object representing the entity's state before the modification (clipped
-   *         to the respective area of interest)
+   *     to the respective area of interest)
    */
   public Geometry getGeometryBefore() {
     return data.previousGeometry.get();
@@ -81,7 +74,7 @@ public class OSMContribution implements OSHDBMapReducible {
    * geometry of the entity. May be `null` if this is an entity creation.
    *
    * @return a JTS Geometry object representing the entity's state before the modification (not
-   *         clipped to the respective area of interest)
+   *     clipped to the respective area of interest)
    */
   public Geometry getGeometryUnclippedBefore() {
     return data.unclippedPreviousGeometry.get();
@@ -92,7 +85,7 @@ public class OSMContribution implements OSHDBMapReducible {
    * interest. May be `null` if this is an entity deletion.
    *
    * @return a JTS Geometry object representing the entity's state after the modification (clipped
-   *         to the respective area of interest)
+   *     to the respective area of interest)
    */
   public Geometry getGeometryAfter() {
     return data.geometry.get();
@@ -103,15 +96,15 @@ public class OSMContribution implements OSHDBMapReducible {
    * geometry of the entity. May be `null` if this is an entity deletion.
    *
    * @return a JTS Geometry object representing the entity's state after the modification (not
-   *         clipped to the respective area of interest)
+   *     clipped to the respective area of interest)
    */
   public Geometry getGeometryUnclippedAfter() {
     return data.unclippedGeometry.get();
   }
 
   /**
-   * Returns the entity object in its state before this modification.
-   * Is `null` if this is a entity creation.
+   * Returns the entity object in its state before this modification. Is `null` if this is a entity
+   * creation.
    *
    * @return the entity object as it was before this modification
    */
@@ -122,10 +115,8 @@ public class OSMContribution implements OSHDBMapReducible {
   /**
    * Returns the entity object in its state after this modification.
    *
-   * <p>
-   * If this is a entity deletion, the returned entity will have the visible flag set to false:
+   * <p>If this is a entity deletion, the returned entity will have the visible flag set to false:
    * `entity.getEntityAfter().isVisible == false`
-   * </p>
    *
    * @return the entity object as it was after this modification
    */
@@ -145,20 +136,17 @@ public class OSMContribution implements OSHDBMapReducible {
   /**
    * Checks if this contribution is of the given contribution type.
    *
-   * <p>
-   * It can be one or more of:
-   * <ul>
-   *   <li>CREATION</li>
-   *   <li>DELETION</li>
-   *   <li>TAG_CHANGE</li>
-   *   <li>GEOMETRY_CHANGE</li>
-   * </ul>
-   * </p>
+   * <p>It can be one or more of:
    *
-   * <p>
-   * If this is a entity creation or deletion, the other flags are not set (even though one might
+   * <ul>
+   *   <li>CREATION
+   *   <li>DELETION
+   *   <li>TAG_CHANGE
+   *   <li>GEOMETRY_CHANGE
+   * </ul>
+   *
+   * <p>If this is a entity creation or deletion, the other flags are not set (even though one might
    * argue that a just created object clearly has a different geometry than before, for example).
-   * </p>
    *
    * @return a set of modification type this contribution made on the underlying data
    */
@@ -169,20 +157,17 @@ public class OSMContribution implements OSHDBMapReducible {
   /**
    * Determined the type of modification this contribution has made.
    *
-   * <p>
-   * Can be one or more of:
-   * <ul>
-   *   <li>CREATION</li>
-   *   <li>DELETION</li>
-   *   <li>TAG_CHANGE</li>
-   *   <li>GEOMETRY_CHANGE</li>
-   * </ul>
-   * </p>
+   * <p>Can be one or more of:
    *
-   * <p>
-   * If this is a entity creation or deletion, the other flags are not set (even though one might
+   * <ul>
+   *   <li>CREATION
+   *   <li>DELETION
+   *   <li>TAG_CHANGE
+   *   <li>GEOMETRY_CHANGE
+   * </ul>
+   *
+   * <p>If this is a entity creation or deletion, the other flags are not set (even though one might
    * argue that a just created object clearly has a different geometry than before, for example).
-   * </p>
    *
    * @return a set of modification type this contribution made on the underlying data
    */
@@ -190,22 +175,17 @@ public class OSMContribution implements OSHDBMapReducible {
     return data.activities.get();
   }
 
-
   /**
    * Returns the user id of the osm contributor responsible for this data modification.
    *
-   * <p>
-   * This user id can be different from what one gets by calling `.getEntityAfter().getUserId()`
-   * if the contribution is a pure geometry change (i.e. the entity itself has not ben modified,
-   * but one or more of its child entities):
-   * </p>
+   * <p>This user id can be different from what one gets by calling `.getEntityAfter().getUserId()`
+   * if the contribution is a pure geometry change (i.e. the entity itself has not ben modified, but
+   * one or more of its child entities):
    *
-   * <p>
-   * If the entity is a way or relation, and in a contribution *"only"* the geometry has been
-   * changed, we can't find out the respective contributor's user id only by looking at the
-   * entity alone – instead, we need to iterate over all the entity's children to find the actual
+   * <p>If the entity is a way or relation, and in a contribution *"only"* the geometry has been
+   * changed, we can't find out the respective contributor's user id only by looking at the entity
+   * alone – instead, we need to iterate over all the entity's children to find the actual
    * contributor's user id.
-   * </p>
    *
    * @return returns the user id of the contributor who made this modification
    */
@@ -217,42 +197,48 @@ public class OSMContribution implements OSHDBMapReducible {
     // type that the entity must also have been modified, we can just return the uid directly
     if (contributionTimestamp.equals(entity.getTimestamp())
         || this.getEntityBefore() == null
-        || this.getEntityBefore().getVersion() != this.getEntityAfter().getVersion()
-    ) {
+        || this.getEntityBefore().getVersion() != this.getEntityAfter().getVersion()) {
       return entity.getUserId();
     }
     int userId = -1;
     // search children for actual contributor's userId
     if (entity instanceof OSMWay) {
-      userId = ((OSMWay)entity).getRefEntities(contributionTimestamp)
-          .filter(Objects::nonNull)
-          .filter(n -> n.getTimestamp().equals(contributionTimestamp))
-          .findFirst()
-          .map(OSMEntity::getUserId)
-          // "rare" race condition, caused by not properly ordered timestamps (t_x > t_{x+1})
-          // todo: what to do here??
-          .orElse(-1);
+      userId =
+          ((OSMWay) entity)
+              .getRefEntities(contributionTimestamp)
+              .filter(Objects::nonNull)
+              .filter(n -> n.getTimestamp().equals(contributionTimestamp))
+              .findFirst()
+              .map(OSMEntity::getUserId)
+              // "rare" race condition, caused by not properly ordered timestamps (t_x > t_{x+1})
+              // todo: what to do here??
+              .orElse(-1);
     } else if (entity instanceof OSMRelation) {
-      userId = ((OSMRelation) entity).getMemberEntities(contributionTimestamp)
-          .filter(Objects::nonNull)
-          .filter(e -> e.getTimestamp().equals(contributionTimestamp))
-          .findFirst()
-          .map(OSMEntity::getUserId)
-          .orElseGet(() ->
-              ((OSMRelation) entity).getMemberEntities(contributionTimestamp)
-                  .filter(Objects::nonNull)
-                  // todo: what to do with rel->node member changes or rel->rel[->*] changes?
-                  .filter(e -> e instanceof OSMWay)
-                  .map(e -> (OSMWay)e)
-                  .flatMap(w -> w.getRefEntities(contributionTimestamp))
-                  .filter(Objects::nonNull)
-                  .filter(n -> n.getTimestamp().equals(contributionTimestamp))
-                  .findFirst()
-                  .map(OSMEntity::getUserId)
-                  // possible "rare" race condition, caused by not properly ordered timestamps
-                  // (t_x > t_{x+1}) // todo: what to do here??
-                  .orElse(-1)
-          );
+      userId =
+          ((OSMRelation) entity)
+              .getMemberEntities(contributionTimestamp)
+              .filter(Objects::nonNull)
+              .filter(e -> e.getTimestamp().equals(contributionTimestamp))
+              .findFirst()
+              .map(OSMEntity::getUserId)
+              .orElseGet(
+                  () ->
+                      ((OSMRelation) entity)
+                          .getMemberEntities(contributionTimestamp)
+                          .filter(Objects::nonNull)
+                          // todo: what to do with rel->node member changes or rel->rel[->*]
+                          // changes?
+                          .filter(e -> e instanceof OSMWay)
+                          .map(e -> (OSMWay) e)
+                          .flatMap(w -> w.getRefEntities(contributionTimestamp))
+                          .filter(Objects::nonNull)
+                          .filter(n -> n.getTimestamp().equals(contributionTimestamp))
+                          .findFirst()
+                          .map(OSMEntity::getUserId)
+                          // possible "rare" race condition, caused by not properly ordered
+                          // timestamps
+                          // (t_x > t_{x+1}) // todo: what to do here??
+                          .orElse(-1));
     }
     return userId;
   }

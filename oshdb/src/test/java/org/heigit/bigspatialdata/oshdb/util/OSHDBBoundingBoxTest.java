@@ -5,15 +5,9 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Polygon;
-
 public class OSHDBBoundingBoxTest {
 
-  public OSHDBBoundingBoxTest() {
-  }
+  public OSHDBBoundingBoxTest() {}
 
   @Test
   public void testToString() {
@@ -76,7 +70,7 @@ public class OSHDBBoundingBoxTest {
   @Test
   public void testGetLon() {
     OSHDBBoundingBox instance = new OSHDBBoundingBox(0.0, 89.0, 1.0, 90.0);
-    long[] expResult = new long[]{0L, 10000000L};
+    long[] expResult = new long[] {0L, 10000000L};
     long[] result = instance.getLon();
     assertArrayEquals(expResult, result);
   }
@@ -84,7 +78,7 @@ public class OSHDBBoundingBoxTest {
   @Test
   public void testGetLat() {
     OSHDBBoundingBox instance = new OSHDBBoundingBox(0.0, 89.0, 1.0, 90.0);
-    long[] expResult = new long[]{890000000L, 900000000L};
+    long[] expResult = new long[] {890000000L, 900000000L};
     long[] result = instance.getLat();
     assertArrayEquals(expResult, result);
   }
@@ -105,5 +99,4 @@ public class OSHDBBoundingBoxTest {
     boolean result = instance.equals(obj);
     assertEquals(expResult, result);
   }
-
 }

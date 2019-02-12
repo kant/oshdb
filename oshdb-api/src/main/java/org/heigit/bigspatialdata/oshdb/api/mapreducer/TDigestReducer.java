@@ -7,16 +7,16 @@ import java.util.Arrays;
 class TDigestReducer {
 
   /**
-   * A COMPRESSION parameter of 1000 should provide relatively precise results, while not being
-   * too demanding on memory usage. See page 20 in the paper [1]:
+   * A COMPRESSION parameter of 1000 should provide relatively precise results, while not being too
+   * demanding on memory usage. See page 20 in the paper [1]:
    *
-   * <quote>
-   *   &gt; Compression parameter (1/δ) was […] 1000 in order to reliably achieve 0.1% accuracy
-   * </quote>
+   * <p><quote> &gt; Compression parameter (1/δ) was […] 1000 in order to reliably achieve 0.1%
+   * accuracy </quote>
    *
-   * <ul><li>
-   *   [1] https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </li></ul>
+   * <ul>
+   *   <li>[1]
+   *       https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
+   * </ul>
    */
   private static final int COMPRESSION = 1000;
 

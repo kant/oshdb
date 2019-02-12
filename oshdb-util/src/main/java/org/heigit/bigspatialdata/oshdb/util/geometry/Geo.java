@@ -11,24 +11,25 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.Polygonal;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 
-/**
- * Geometry utility functions.
- */
+/** Geometry utility functions. */
 public class Geo {
 
-  public static double earthRadius = 6371000; //meters
+  public static double earthRadius = 6371000; // meters
 
   // =====================
   // = line calculations =
   // =====================
 
   public static double distanceBetweenCoordinatesHaversine(
-  		double lat1, double lng1, double lat2, double lng2
-  ) {
+      double lat1, double lng1, double lat2, double lng2) {
     double dLat = Math.toRadians(lat2 - lat1);
     double dLng = Math.toRadians(lng2 - lng1);
-    double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(Math.toRadians(lat1))
-				* Math.cos(Math.toRadians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    double a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2)
+            + Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLng / 2)
+                * Math.sin(dLng / 2);
     double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return earthRadius * c;
@@ -36,8 +37,7 @@ public class Geo {
 
   // Equirectangular distance approximation (works well assuming segments are short)
   public static double distanceBetweenCoordinates(
-  		double lat1, double lng1, double lat2, double lng2
-  ) {
+      double lat1, double lng1, double lat2, double lng2) {
     double dLat = Math.toRadians(lat2 - lat1);
     double dLng = Math.toRadians(lng2 - lng1);
     dLng *= Math.cos(Math.toRadians((lat2 + lat1) / 2));
@@ -50,10 +50,10 @@ public class Geo {
     Coordinate[] coords = line.getCoordinates();
 
     for (int i = 1; i < coords.length; i++) {
-      dist += distanceBetweenCoordinates(
-        coords[i - 1].y, coords[i - 1].x,
-        coords[i].y, coords[i].x
-      );
+      dist +=
+          distanceBetweenCoordinates(
+              coords[i - 1].y, coords[i - 1].x,
+              coords[i].y, coords[i].x);
     }
 
     return dist;
@@ -131,26 +131,23 @@ public class Geo {
   }
 
   /**
-   * Calculate the approximate area of the polygon were it projected onto
-   *     the earth.  Note that this area will be positive if ring is oriented
-   *     clockwise, otherwise it will be negative.
+   * Calculate the approximate area of the polygon were it projected onto the earth. Note that this
+   * area will be positive if ring is oriented clockwise, otherwise it will be negative.
    *
-   * Ported to Java from https://github.com/mapbox/geojson-area/
+   * <p>Ported to Java from https://github.com/mapbox/geojson-area/
    *
-   * Reference:
-   * Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for
-   *     Polygons on a Sphere", JPL Publication 07-03, Jet Propulsion
-   *     Laboratory, Pasadena, CA, June 2007 http://trs-new.jpl.nasa.gov/dspace/handle/2014/40409
+   * <p>Reference: Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for Polygons on
+   * a Sphere", JPL Publication 07-03, Jet Propulsion Laboratory, Pasadena, CA, June 2007
+   * http://trs-new.jpl.nasa.gov/dspace/handle/2014/40409
    *
-   * Returns:
-   * {float} The approximate signed geodesic area of the polygon in square meters.
+   * <p>Returns: {float} The approximate signed geodesic area of the polygon in square meters.
    */
   public static double ringArea(LinearRing ring) {
     double area = 0.0;
     Coordinate[] coords = ring.getCoordinates();
     int coordsLength = coords.length;
     int i, lowerIndex, middleIndex, upperIndex;
-    Coordinate p1,p2,p3;
+    Coordinate p1, p2, p3;
 
     if (coordsLength > 2) {
       for (i = 0; i < coordsLength; i++) {

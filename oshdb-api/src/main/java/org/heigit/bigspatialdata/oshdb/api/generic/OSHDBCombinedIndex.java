@@ -20,7 +20,7 @@ public class OSHDBCombinedIndex<U, V> extends OSHDBBiIndex<U, V>
   }
 
   @Override
-  public int compareTo(@NotNull OSHDBCombinedIndex<U,V> o) {
+  public int compareTo(@NotNull OSHDBCombinedIndex<U, V> o) {
     return this.payload.compareTo(o.payload);
   }
 
@@ -34,7 +34,7 @@ public class OSHDBCombinedIndex<U, V> extends OSHDBBiIndex<U, V>
    * on this object to a nested Map structure, which can be easier to process further on.
    *
    * <p>This version creates a map for each &lt;U&gt; index value, containing maps containing
-   * results by timestamps.</p>
+   * results by timestamps.
    *
    * @param result the "flat" result data structure that should be converted to a nested structure
    * @param <A> an arbitrary data type, used for the data value items
@@ -43,15 +43,15 @@ public class OSHDBCombinedIndex<U, V> extends OSHDBBiIndex<U, V>
    * @return a nested data structure: for each index part there is a separate level of nested maps
    */
   public static <A, U, V> SortedMap<U, SortedMap<V, A>> nest(
-      Map<OSHDBCombinedIndex<U, V>, A> result
-  ) {
+      Map<OSHDBCombinedIndex<U, V>, A> result) {
     TreeMap<U, SortedMap<V, A>> ret = new TreeMap<>();
-    result.forEach((index, data) -> {
-      if (!ret.containsKey(index.getFirstIndex())) {
-        ret.put(index.getFirstIndex(), new TreeMap<V, A>());
-      }
-      ret.get(index.getFirstIndex()).put(index.getSecondIndex(), data);
-    });
+    result.forEach(
+        (index, data) -> {
+          if (!ret.containsKey(index.getFirstIndex())) {
+            ret.put(index.getFirstIndex(), new TreeMap<V, A>());
+          }
+          ret.get(index.getFirstIndex()).put(index.getSecondIndex(), data);
+        });
     return ret;
   }
 }

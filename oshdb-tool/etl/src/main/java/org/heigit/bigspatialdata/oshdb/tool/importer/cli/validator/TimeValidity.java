@@ -1,11 +1,10 @@
 package org.heigit.bigspatialdata.oshdb.tool.importer.cli.validator;
 
-import org.heigit.bigspatialdata.oshdb.util.time.ISODateTimeParser;
-
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
+import org.heigit.bigspatialdata.oshdb.util.time.ISODateTimeParser;
 
-public class TimeValidity implements IParameterValidator{
+public class TimeValidity implements IParameterValidator {
 
   @Override
   public void validate(String name, String value) throws ParameterException {
@@ -13,7 +12,6 @@ public class TimeValidity implements IParameterValidator{
       ISODateTimeParser.parseISODateTime(value);
     } catch (Exception e) {
       throw new ParameterException(e.getMessage());
-    }    
+    }
   }
-  
 }

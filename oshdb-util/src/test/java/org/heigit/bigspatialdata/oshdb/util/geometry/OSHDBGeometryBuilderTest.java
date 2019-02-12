@@ -1,5 +1,8 @@
 package org.heigit.bigspatialdata.oshdb.util.geometry;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
@@ -8,12 +11,7 @@ import org.heigit.bigspatialdata.oshdb.osm.OSMMember;
 import org.heigit.bigspatialdata.oshdb.osm.OSMRelation;
 import org.heigit.bigspatialdata.oshdb.osm.OSMWay;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
-
 import org.heigit.bigspatialdata.oshdb.util.OSHDBTimestamp;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.heigit.bigspatialdata.oshdb.util.tagInterpreter.TagInterpreter;
 import org.heigit.bigspatialdata.oshdb.util.test.OSMXmlReader;
 import org.heigit.bigspatialdata.oshdb.util.time.ISODateTimeParser;
@@ -28,9 +26,7 @@ public class OSHDBGeometryBuilderTest {
 
   private OSHDBTimestamp toOSHDBTimestamp(String timeString) {
     try {
-      return new OSHDBTimestamp(
-          ISODateTimeParser.parseISODateTime(timeString).toEpochSecond()
-      );
+      return new OSHDBTimestamp(ISODateTimeParser.parseISODateTime(timeString).toEpochSecond());
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -162,20 +158,36 @@ public class OSHDBGeometryBuilderTest {
   }
 }
 
-
 abstract class FakeTagInterpreter implements TagInterpreter {
   @Override
-  public boolean isArea(OSMEntity entity) { return false; }
+  public boolean isArea(OSMEntity entity) {
+    return false;
+  }
+
   @Override
-  public boolean isLine(OSMEntity entity) { return false; }
+  public boolean isLine(OSMEntity entity) {
+    return false;
+  }
+
   @Override
-  public boolean hasInterestingTagKey(OSMEntity osm) { return false; }
+  public boolean hasInterestingTagKey(OSMEntity osm) {
+    return false;
+  }
+
   @Override
-  public boolean isMultipolygonOuterMember(OSMMember osmMember) { return false; }
+  public boolean isMultipolygonOuterMember(OSMMember osmMember) {
+    return false;
+  }
+
   @Override
-  public boolean isMultipolygonInnerMember(OSMMember osmMember) { return false; }
+  public boolean isMultipolygonInnerMember(OSMMember osmMember) {
+    return false;
+  }
+
   @Override
-  public boolean isOldStyleMultipolygon(OSMRelation osmRelation) { return false; }
+  public boolean isOldStyleMultipolygon(OSMRelation osmRelation) {
+    return false;
+  }
 }
 
 class FakeTagInterpreterAreaAlways extends FakeTagInterpreter {

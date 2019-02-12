@@ -1,5 +1,10 @@
 package org.heigit.bigspatialdata.oshdb.util.test;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.io.Files;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,11 +19,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.zip.GZIPInputStream;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.heigit.bigspatialdata.oshdb.OSHDB;
 import org.heigit.bigspatialdata.oshdb.osh.OSHEntity;
 import org.heigit.bigspatialdata.oshdb.osh.OSHNode;
@@ -38,12 +41,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.io.Files;
-
 public class OSMXmlReader {
 
   private static class Test {
@@ -55,24 +52,30 @@ public class OSMXmlReader {
 
       db.add(testDataDir.resolve("relation/r4815251.osh.gz"));
 
-      db.relations().asMap().forEach((id, versions) -> {
-        System.out.println("id:" + id);
-        versions.forEach(osm -> {
-          System.out.println("\t" + osm);
-        });
-      });
+      db.relations()
+          .asMap()
+          .forEach(
+              (id, versions) -> {
+                System.out.println("id:" + id);
+                versions.forEach(
+                    osm -> {
+                      System.out.println("\t" + osm);
+                    });
+              });
 
       System.out.println("\n\n");
-      db.ways.get(27913435L).forEach(osm -> {
-        System.out.println("\t" + osm);
-      });
+      db.ways
+          .get(27913435L)
+          .forEach(
+              osm -> {
+                System.out.println("\t" + osm);
+              });
 
       int key = 6;
       System.out.println(db.keys.inverse().get(Integer.valueOf(key)));
       System.out.println(db.keys.get("place"));
 
       System.out.println(db.keyValues.get(key).inverse().get(Integer.valueOf(2)));
-
     }
   }
 
@@ -137,8 +140,16 @@ public class OSMXmlReader {
 
         osm.setExtension(longitude, latitude);
 
-        OSMNode oldOSM = new OSMNode(osm.getId(), osm.getVersion() * (osm.isVisible() ? 1 : -1), osm.getTimestamp(),
-            osm.getChangeset(), osm.getUserId(), osm.getTags(), osm.getLon(), osm.getLat());
+        OSMNode oldOSM =
+            new OSMNode(
+                osm.getId(),
+                osm.getVersion() * (osm.isVisible() ? 1 : -1),
+                osm.getTimestamp(),
+                osm.getChangeset(),
+                osm.getUserId(),
+                osm.getTags(),
+                osm.getLon(),
+                osm.getLat());
         nodes.put(Long.valueOf(id), oldOSM);
       }
       lastId = id;
@@ -169,8 +180,15 @@ public class OSMXmlReader {
           members[idx++] = new OSMMember(memId, OSMType.NODE, 0, data);
         }
         // osm.setExtension(members);
-        OSMWay oldOSM = new OSMWay(osm.getId(), osm.getVersion() * (osm.isVisible() ? 1 : -1), osm.getTimestamp(),
-            osm.getChangeset(), osm.getUserId(), osm.getTags(), members);
+        OSMWay oldOSM =
+            new OSMWay(
+                osm.getId(),
+                osm.getVersion() * (osm.isVisible() ? 1 : -1),
+                osm.getTimestamp(),
+                osm.getChangeset(),
+                osm.getUserId(),
+                osm.getTags(),
+                members);
         ways.put(Long.valueOf(id), oldOSM);
       }
       lastId = id;
@@ -203,8 +221,7 @@ public class OSMXmlReader {
           }
 
           OSMType t;
-          if ("node".equalsIgnoreCase(type))
-            t = OSMType.NODE;
+          if ("node".equalsIgnoreCase(type)) t = OSMType.NODE;
           else if ("way".equalsIgnoreCase(type)) {
             t = OSMType.WAY;
           } else if ("relation".equalsIgnoreCase(type)) {
@@ -225,7 +242,7 @@ public class OSMXmlReader {
               Map<Long, OSHNode> wayNodes = new TreeMap<>();
               for (OSMWay way : this.ways().get(memId)) {
                 for (OSMMember wayNode : way.getRefs()) {
-                  wayNodes.putIfAbsent(wayNode.getId(), (OSHNode)wayNode.getEntity());
+                  wayNodes.putIfAbsent(wayNode.getId(), (OSHNode) wayNode.getEntity());
                 }
               }
               if (this.ways().containsKey(memId)) {
@@ -236,8 +253,15 @@ public class OSMXmlReader {
           members[idx++] = new OSMMember(memId, t, r.intValue(), data);
         }
         // osm.setExtension(members);
-        OSMRelation oldOSM = new OSMRelation(osm.getId(), osm.getVersion() * (osm.isVisible() ? 1 : -1),
-            osm.getTimestamp(), osm.getChangeset(), osm.getUserId(), osm.getTags(), members);
+        OSMRelation oldOSM =
+            new OSMRelation(
+                osm.getId(),
+                osm.getVersion() * (osm.isVisible() ? 1 : -1),
+                osm.getTimestamp(),
+                osm.getChangeset(),
+                osm.getUserId(),
+                osm.getTags(),
+                members);
         relations.put(Long.valueOf(id), oldOSM);
       }
       lastId = id;

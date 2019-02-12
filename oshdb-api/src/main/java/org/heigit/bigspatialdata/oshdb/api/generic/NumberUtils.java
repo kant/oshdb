@@ -7,7 +7,7 @@ public class NumberUtils implements Serializable {
   /**
    * Add two numeric values and return the sum in the smallest common type.
    *
-   * <p>Supports Integer, Float and Double values</p>
+   * <p>Supports Integer, Float and Double values
    *
    * @param x a numeric value
    * @param y a numeric value

@@ -4,10 +4,10 @@ import org.heigit.bigspatialdata.oshdb.osh2.OSHEntity;
 import org.heigit.bigspatialdata.oshdb.osm.OSMType;
 import org.heigit.bigspatialdata.oshdb.osm2.OSMMember;
 
-public class OSMMemberWayIdOnly implements OSMMember{
+public class OSMMemberWayIdOnly implements OSMMember {
 
   private final long id;
-    
+
   public OSMMemberWayIdOnly(long id) {
     this.id = id;
   }
@@ -32,7 +32,6 @@ public class OSMMemberWayIdOnly implements OSMMember{
     return null;
   }
 
-  
   @Override
   public String toString() {
     return asString();

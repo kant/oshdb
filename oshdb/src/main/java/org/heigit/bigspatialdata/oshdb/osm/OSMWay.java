@@ -12,8 +12,14 @@ public class OSMWay extends OSMEntity implements Comparable<OSMWay>, Serializabl
   private static final long serialVersionUID = 1L;
   private final OSMMember[] refs;
 
-  public OSMWay(final long id, final int version, final OSHDBTimestamp timestamp, final long changeset,
-      final int userId, final int[] tags, final OSMMember[] refs) {
+  public OSMWay(
+      final long id,
+      final int version,
+      final OSHDBTimestamp timestamp,
+      final long changeset,
+      final int userId,
+      final int[] tags,
+      final OSMMember[] refs) {
     super(id, version, timestamp, changeset, userId, tags);
     this.refs = refs;
   }
@@ -28,7 +34,9 @@ public class OSMWay extends OSMEntity implements Comparable<OSMWay>, Serializabl
   }
 
   public Stream<OSMNode> getRefEntities(OSHDBTimestamp timestamp) {
-    return Arrays.stream(this.getRefs()).map(OSMMember::getEntity).filter(Objects::nonNull)
+    return Arrays.stream(this.getRefs())
+        .map(OSMMember::getEntity)
+        .filter(Objects::nonNull)
         .map(entity -> OSHEntities.getByTimestamp((OSHNode) entity, timestamp));
   }
 
@@ -48,5 +56,4 @@ public class OSMWay extends OSMEntity implements Comparable<OSMWay>, Serializabl
     }
     return c;
   }
-
 }

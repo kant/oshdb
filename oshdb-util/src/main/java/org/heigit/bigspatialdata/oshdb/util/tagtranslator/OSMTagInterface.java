@@ -5,5 +5,4 @@ package org.heigit.bigspatialdata.oshdb.util.tagtranslator;
  * objects as parameters without overloading, and it allows to write methods that
  * return either an OSMTag or an OSMTagKey object.
  */
-public interface OSMTagInterface {
-}
+public interface OSMTagInterface {}

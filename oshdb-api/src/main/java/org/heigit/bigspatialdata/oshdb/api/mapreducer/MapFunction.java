@@ -2,9 +2,7 @@ package org.heigit.bigspatialdata.oshdb.api.mapreducer;
 
 import org.heigit.bigspatialdata.oshdb.api.generic.function.SerializableFunction;
 
-/**
- * A function that has a flag: <i>isFlatMapper</i>.
- */
+/** A function that has a flag: <i>isFlatMapper</i>. */
 class MapFunction implements SerializableFunction {
   private SerializableFunction mapper;
   private boolean isFlatMapper;

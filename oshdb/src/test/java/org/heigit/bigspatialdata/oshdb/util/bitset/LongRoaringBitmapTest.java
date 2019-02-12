@@ -1,16 +1,13 @@
 package org.heigit.bigspatialdata.oshdb.util.bitset;
 
 import static org.junit.Assert.*;
+
 import org.junit.Test;
 
-/**
- *
- * @author Rafael Troilo <rafael.troilo@uni-heidelberg.de>
- */
+/** @author Rafael Troilo <rafael.troilo@uni-heidelberg.de> */
 public class LongRoaringBitmapTest {
 
-  public LongRoaringBitmapTest() {
-  }
+  public LongRoaringBitmapTest() {}
 
   @Test
   public void test() {
@@ -25,5 +22,4 @@ public class LongRoaringBitmapTest {
     assertTrue(lrb.get(l));
     assertTrue(!lrb.get(l + 123));
   }
-
 }

@@ -28,8 +28,13 @@ public abstract class OSMEntity {
    * @param userId UserID
    * @param tags An array of OSHDB key-value ids. The format is [KID1,VID1,KID2,VID2...KIDn,VIDn].
    */
-  public OSMEntity(final long id, final int version, final OSHDBTimestamp timestamp,
-      final long changesetId, final int userId, final int[] tags) {
+  public OSMEntity(
+      final long id,
+      final int version,
+      final OSHDBTimestamp timestamp,
+      final long changesetId,
+      final int userId,
+      final int[] tags) {
     this.id = id;
     this.version = version;
     this.timestamp = timestamp;
@@ -56,9 +61,7 @@ public abstract class OSMEntity {
     return changesetId;
   }
 
-  /**
-   * @deprecated use {@link #getChangesetId()} instead.
-   */
+  /** @deprecated use {@link #getChangesetId()} instead. */
   @Deprecated
   public long getChangeset() {
     return changesetId;
@@ -117,16 +120,15 @@ public abstract class OSMEntity {
     return false;
   }
 
-
   /**
    * Tests if any a given key is present but ignores certain values. Useful when looking for example
    * "TagKey" != "no"
    *
    * @param key the key to search for
    * @param uninterestingValues list of values, that should return false although the key is
-   *        actually present
+   *     actually present
    * @return true if the key is present and is NOT in a combination with the given values, false
-   *         otherwise
+   *     otherwise
    */
   public boolean hasTagKeyExcluding(int key, int[] uninterestingValues) {
     for (int i = 0; i < tags.length; i += 2) {
@@ -159,17 +161,25 @@ public abstract class OSMEntity {
     return false;
   }
 
-
-
   public boolean equalsTo(OSMEntity o) {
-    return id == o.id && version == o.version && timestamp.equals(o.timestamp)
-        && changesetId == o.changesetId && userId == o.userId && Arrays.equals(tags, o.tags);
+    return id == o.id
+        && version == o.version
+        && timestamp.equals(o.timestamp)
+        && changesetId == o.changesetId
+        && userId == o.userId
+        && Arrays.equals(tags, o.tags);
   }
 
   @Override
   public String toString() {
-    return String.format("ID:%d V:+%d+ TS:%d CS:%d VIS:%s UID:%d TAGS:%S", getId(), getVersion(),
-        getTimestamp().getRawUnixTimestamp(), getChangeset(), isVisible(), getUserId(),
+    return String.format(
+        "ID:%d V:+%d+ TS:%d CS:%d VIS:%s UID:%d TAGS:%S",
+        getId(),
+        getVersion(),
+        getTimestamp().getRawUnixTimestamp(),
+        getChangeset(),
+        isVisible(),
+        getUserId(),
         Arrays.toString(getRawTags()));
   }
 }

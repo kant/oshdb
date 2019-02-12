@@ -1,5 +1,7 @@
 package org.heigit.bigspatialdata.oshdb.api.tests;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,15 +15,14 @@ import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.heigit.bigspatialdata.oshdb.TableNames;
 import org.heigit.bigspatialdata.oshdb.api.db.OSHDBH2;
 import org.heigit.bigspatialdata.oshdb.api.db.OSHDBIgnite;
 import org.heigit.bigspatialdata.oshdb.grid.GridOSHNodes;
 import org.heigit.bigspatialdata.oshdb.index.zfc.ZGrid;
-import org.heigit.bigspatialdata.oshdb.TableNames;
-import static org.junit.Assert.fail;
 
 abstract class TestMapReduceOSHDB_Ignite extends TestMapReduce {
-  final static Ignite ignite =
+  static final Ignite ignite =
       Ignition.start(new File("./src/test/resources/ignite-config.xml").toString());
 
   public TestMapReduceOSHDB_Ignite(OSHDBIgnite oshdb) throws Exception {

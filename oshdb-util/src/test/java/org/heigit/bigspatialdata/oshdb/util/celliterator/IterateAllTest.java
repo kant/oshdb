@@ -32,11 +32,9 @@ public class IterateAllTest {
     Class.forName("org.h2.Driver");
 
     // connect to the "Big"DB
-    IterateAllTest.conn = DriverManager.getConnection(
-        "jdbc:h2:./src/test/resources/test-data;ACCESS_MODE_DATA=r",
-        "sa",
-        ""
-    );
+    IterateAllTest.conn =
+        DriverManager.getConnection(
+            "jdbc:h2:./src/test/resources/test-data;ACCESS_MODE_DATA=r", "sa", "");
   }
 
   @AfterClass
@@ -47,38 +45,38 @@ public class IterateAllTest {
   public IterateAllTest() {}
 
   @Test
-  public void testIssue108() throws SQLException, IOException, ClassNotFoundException, ParseException, OSHDBKeytablesNotFoundException {
-    ResultSet oshCellsRawData = conn.prepareStatement("select data from " + TableNames.T_NODES).executeQuery();
+  public void testIssue108()
+      throws SQLException, IOException, ClassNotFoundException, ParseException,
+          OSHDBKeytablesNotFoundException {
+    ResultSet oshCellsRawData =
+        conn.prepareStatement("select data from " + TableNames.T_NODES).executeQuery();
 
     int countTotal = 0;
     int countCreated = 0;
     int countOther = 0;
     while (oshCellsRawData.next()) {
       // get one cell from the raw data stream
-      GridOSHEntity oshCellRawData = (GridOSHEntity) (new ObjectInputStream(
-          oshCellsRawData.getBinaryStream(1))
-      ).readObject();
+      GridOSHEntity oshCellRawData =
+          (GridOSHEntity) (new ObjectInputStream(oshCellsRawData.getBinaryStream(1))).readObject();
 
       TreeSet<OSHDBTimestamp> timestamps = new TreeSet<>();
       timestamps.add(new OSHDBTimestamp(1325376000L));
       timestamps.add(new OSHDBTimestamp(1516375698L));
 
-      List<IterateAllEntry> result = (new CellIterator(
-          timestamps,
-          new OSHDBBoundingBox(8, 9, 49, 50),
-          new DefaultTagInterpreter(conn),
-          oshEntity -> oshEntity.getId() == 617308093,
-          osmEntity -> true,
-          false
-      )).iterateByContribution(
-          oshCellRawData
-      ).collect(Collectors.toList());
+      List<IterateAllEntry> result =
+          (new CellIterator(
+                  timestamps,
+                  new OSHDBBoundingBox(8, 9, 49, 50),
+                  new DefaultTagInterpreter(conn),
+                  oshEntity -> oshEntity.getId() == 617308093,
+                  osmEntity -> true,
+                  false))
+              .iterateByContribution(oshCellRawData)
+              .collect(Collectors.toList());
       countTotal += result.size();
       for (IterateAllEntry entry : result) {
-        if (entry.activities.contains(ContributionType.CREATION))
-          countCreated++;
-        else
-          countOther++;
+        if (entry.activities.contains(ContributionType.CREATION)) countCreated++;
+        else countOther++;
       }
     }
 

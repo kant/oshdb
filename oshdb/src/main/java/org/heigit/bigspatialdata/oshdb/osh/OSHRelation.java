@@ -1,6 +1,5 @@
 package org.heigit.bigspatialdata.oshdb.osh;
 
-import com.google.common.collect.Lists;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -12,23 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 import org.heigit.bigspatialdata.oshdb.osm.OSMEntity;
 import org.heigit.bigspatialdata.oshdb.osm.OSMMember;
 import org.heigit.bigspatialdata.oshdb.osm.OSMNode;
 import org.heigit.bigspatialdata.oshdb.osm.OSMRelation;
 import org.heigit.bigspatialdata.oshdb.osm.OSMType;
-import org.heigit.bigspatialdata.oshdb.osm.OSMWay;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBTimestamp;
 import org.heigit.bigspatialdata.oshdb.util.byteArray.ByteArrayOutputWrapper;
@@ -61,9 +50,15 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     return instance(data, offset, length, 0, 0, 0, 0);
   }
 
-  public static OSHRelation instance(final byte[] data, final int offset, final int length,
-      final long baseId, final long baseTimestamp, final long baseLongitude,
-      final long baseLatitude) throws IOException {
+  public static OSHRelation instance(
+      final byte[] data,
+      final int offset,
+      final int length,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude)
+      throws IOException {
 
     final ByteArrayWrapper wrapper = ByteArrayWrapper.newInstance(data, offset, length);
     final byte header = wrapper.readRawByte();
@@ -74,7 +69,6 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     final long maxLat = minLat + wrapper.readUInt64();
 
     final OSHDBBoundingBox bbox = new OSHDBBoundingBox(minLon, minLat, maxLon, maxLat);
-
 
     final int[] keys;
     if ((header & HEADER_HAS_TAGS) != 0) {
@@ -123,7 +117,6 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     } else {
       wayIndex = new int[0];
       wayDataLength = 0;
-
     }
     final int wayDataOffset = wrapper.getPos();
 
@@ -132,22 +125,62 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     final int dataOffset = wayDataOffset + wayDataLength;
     final int dataLength = length - (dataOffset - offset);
 
-    return new OSHRelation(data, offset, length, //
-        baseId, baseTimestamp, baseLongitude, baseLatitude, //
-        header, id, bbox, keys, //
-        dataOffset, dataLength, //
-        nodeIndex, nodeDataOffset, nodeDataLength, //
-        wayIndex, wayDataOffset, wayDataLength);
+    return new OSHRelation(
+        data,
+        offset,
+        length, //
+        baseId,
+        baseTimestamp,
+        baseLongitude,
+        baseLatitude, //
+        header,
+        id,
+        bbox,
+        keys, //
+        dataOffset,
+        dataLength, //
+        nodeIndex,
+        nodeDataOffset,
+        nodeDataLength, //
+        wayIndex,
+        wayDataOffset,
+        wayDataLength);
   }
 
-  private OSHRelation(final byte[] data, final int offset, final int length, final long baseId,
-      final long baseTimestamp, final long baseLongitude, final long baseLatitude,
-      final byte header, final long id, final OSHDBBoundingBox bbox, final int[] keys,
-      final int dataOffset, final int dataLength, final int[] nodeIndex, final int nodeDataOffset,
-      final int nodeDataLength, final int[] wayIndex, final int wayDataOffset,
+  private OSHRelation(
+      final byte[] data,
+      final int offset,
+      final int length,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final byte header,
+      final long id,
+      final OSHDBBoundingBox bbox,
+      final int[] keys,
+      final int dataOffset,
+      final int dataLength,
+      final int[] nodeIndex,
+      final int nodeDataOffset,
+      final int nodeDataLength,
+      final int[] wayIndex,
+      final int wayDataOffset,
       final int wayDataLength) {
-    super(data, offset, length, baseId, baseTimestamp, baseLongitude, baseLatitude, header, id,
-        bbox, keys, dataOffset, dataLength);
+    super(
+        data,
+        offset,
+        length,
+        baseId,
+        baseTimestamp,
+        baseLongitude,
+        baseLatitude,
+        header,
+        id,
+        bbox,
+        keys,
+        dataOffset,
+        dataLength);
 
     this.nodeIndex = nodeIndex;
     this.nodeDataOffset = nodeDataOffset;
@@ -156,7 +189,6 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     this.wayIndex = wayIndex;
     this.wayDataOffset = wayDataOffset;
     this.wayDataLength = wayDataLength;
-
   }
 
   @Override
@@ -208,7 +240,7 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
             if ((changed & CHANGED_TAGS) != 0) {
               int size = wrapper.readUInt32();
               keyValues = new int[size];
-              for (int i = 0; i < size;) {
+              for (int i = 0; i < size; ) {
                 keyValues[i++] = wrapper.readUInt32();
                 keyValues[i++] = wrapper.readUInt32();
               }
@@ -226,46 +258,56 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
               for (int i = 0; i < size; i++) {
                 memberType = OSMType.fromInt(wrapper.readUInt32());
                 switch (memberType) {
-                  case NODE: {
-                    memberOffset = wrapper.readUInt32();
-                    if (memberOffset > 0) {
-                      member = nodes.get(memberOffset - 1);
-                      memberId = member.getId();
+                  case NODE:
+                    {
+                      memberOffset = wrapper.readUInt32();
+                      if (memberOffset > 0) {
+                        member = nodes.get(memberOffset - 1);
+                        memberId = member.getId();
 
-                    } else {
-                      member = null;
-                      memberId = wrapper.readSInt64() + memberId;
+                      } else {
+                        member = null;
+                        memberId = wrapper.readSInt64() + memberId;
+                      }
+                      break;
                     }
-                    break;
-                  }
-                  case WAY: {
-                    memberOffset = wrapper.readUInt32();
-                    if (memberOffset > 0) {
-                      member = ways.get(memberOffset - 1);
-                      memberId = member.getId();
+                  case WAY:
+                    {
+                      memberOffset = wrapper.readUInt32();
+                      if (memberOffset > 0) {
+                        member = ways.get(memberOffset - 1);
+                        memberId = member.getId();
 
-                    } else {
-                      member = null;
-                      memberId = wrapper.readSInt64() + memberId;
+                      } else {
+                        member = null;
+                        memberId = wrapper.readSInt64() + memberId;
+                      }
+                      break;
                     }
-                    break;
-                  }
-                  case RELATION: {
-                    memberId = wrapper.readSInt64() + memberId;
-                    break;
-                  }
-                  default: {
-                    memberId = wrapper.readSInt64() + memberId;
-                    break;
-                  }
+                  case RELATION:
+                    {
+                      memberId = wrapper.readSInt64() + memberId;
+                      break;
+                    }
+                  default:
+                    {
+                      memberId = wrapper.readSInt64() + memberId;
+                      break;
+                    }
                 }
 
                 memberRole = wrapper.readUInt32();
                 members[i] = new OSMMember(memberId, memberType, memberRole, member);
               }
             }
-            return new OSMRelation(id, version, new OSHDBTimestamp(baseTimestamp + timestamp),
-                changeset, userId, keyValues, members);
+            return new OSMRelation(
+                id,
+                version,
+                new OSHDBTimestamp(baseTimestamp + timestamp),
+                changeset,
+                userId,
+                keyValues,
+                members);
           } catch (IOException e) {
             e.printStackTrace();
             // TODO: handle exception(s)
@@ -284,8 +326,9 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
       int offset = nodeIndex[index];
       int length =
           ((index < nodeIndex.length - 1) ? nodeIndex[index + 1] : nodeDataLength) - offset;
-      OSHNode n = OSHNode.instance(data, nodeDataOffset + offset, length, 0, 0, baseLongitude,
-          baseLatitude);
+      OSHNode n =
+          OSHNode.instance(
+              data, nodeDataOffset + offset, length, 0, 0, baseLongitude, baseLatitude);
       nodes.add(n);
     }
     return nodes;
@@ -303,14 +346,23 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     return ways;
   }
 
-  public static OSHRelation build(final List<OSMRelation> versions, final Collection<OSHNode> nodes,
-      final Collection<OSHWay> ways) throws IOException {
+  public static OSHRelation build(
+      final List<OSMRelation> versions,
+      final Collection<OSHNode> nodes,
+      final Collection<OSHWay> ways)
+      throws IOException {
     return build(versions, nodes, ways, 0, 0, 0, 0);
   }
 
-  public static OSHRelation build(final List<OSMRelation> versions, final Collection<OSHNode> nodes,
-      final Collection<OSHWay> ways, final long baseId, final long baseTimestamp,
-      final long baseLongitude, final long baseLatitude) throws IOException {
+  public static OSHRelation build(
+      final List<OSMRelation> versions,
+      final Collection<OSHNode> nodes,
+      final Collection<OSHWay> ways,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude)
+      throws IOException {
     Collections.sort(versions, Collections.reverseOrder());
     ByteArrayOutputWrapper output = new ByteArrayOutputWrapper();
 
@@ -395,40 +447,43 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
         for (OSMMember member : members) {
           output.writeUInt32(member.getType().intValue());
           switch (member.getType()) {
-            case RELATION: {
-              output.writeSInt64(member.getId() - lastMemberId);
-              break;
-            }
-            case NODE: {
-              Integer refOffset = nodeOffsets.get(Long.valueOf(member.getId()));
-              if (refOffset == null) {
-                output.writeUInt32(0);
+            case RELATION:
+              {
                 output.writeSInt64(member.getId() - lastMemberId);
-              } else {
-                output.writeUInt32(refOffset.intValue() + 1);
+                break;
               }
-              break;
-            }
-            case WAY: {
-              Integer refOffset = wayOffsets.get(Long.valueOf(member.getId()));
-              if (refOffset == null) {
-                output.writeUInt32(0);
-                output.writeSInt64(member.getId() - lastMemberId);
-              } else {
-                output.writeUInt32(refOffset.intValue() + 1);
+            case NODE:
+              {
+                Integer refOffset = nodeOffsets.get(Long.valueOf(member.getId()));
+                if (refOffset == null) {
+                  output.writeUInt32(0);
+                  output.writeSInt64(member.getId() - lastMemberId);
+                } else {
+                  output.writeUInt32(refOffset.intValue() + 1);
+                }
+                break;
               }
-              break;
-            }
-            default: {
-              break;
-            }
+            case WAY:
+              {
+                Integer refOffset = wayOffsets.get(Long.valueOf(member.getId()));
+                if (refOffset == null) {
+                  output.writeUInt32(0);
+                  output.writeSInt64(member.getId() - lastMemberId);
+                } else {
+                  output.writeUInt32(refOffset.intValue() + 1);
+                }
+                break;
+              }
+            default:
+              {
+                break;
+              }
           }
 
           output.writeUInt32(member.getRawRoleId());
           lastMemberId = member.getId();
         }
       }
-
     }
 
     ByteArrayOutputWrapper record = new ByteArrayOutputWrapper();
@@ -487,8 +542,8 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
     }
 
     record.writeByteArray(output.array(), 0, output.length());
-    return OSHRelation.instance(record.array(), 0, record.length(), baseId, baseTimestamp,
-        baseLongitude, baseLatitude);
+    return OSHRelation.instance(
+        record.array(), 0, record.length(), baseId, baseTimestamp, baseLongitude, baseLatitude);
   }
 
   public void writeTo(ByteArrayOutputWrapper out) throws IOException {
@@ -549,5 +604,4 @@ public class OSHRelation extends OSHEntity<OSMRelation> implements Serializable 
       return null;
     }
   }
-
 }

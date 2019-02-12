@@ -2,7 +2,6 @@ package org.heigit.bigspatialdata.oshdb.index.zfc;
 
 import java.util.Comparator;
 import java.util.Iterator;
-
 import org.heigit.bigspatialdata.oshdb.OSHDB;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox.OVERLAP;
@@ -46,8 +45,10 @@ public class ZGrid {
     minLat = normalizeLat(minLat);
     maxLat = normalizeLat(maxLat);
 
-    if (!validateLon(minLon) || !validateLon(maxLon)
-            || !validateLat(minLat) || !validateLat(maxLat)) {
+    if (!validateLon(minLon)
+        || !validateLon(maxLon)
+        || !validateLat(minLat)
+        || !validateLat(maxLat)) {
       return -1;
     }
 
@@ -90,7 +91,12 @@ public class ZGrid {
   public static long getParent(long zId, int parentZoom) {
     final int zoom = getZoom(zId);
     if (zoom < parentZoom) {
-      throw new IllegalArgumentException("zoom of id already lesser than parentZoom (zoom:" + zoom + " parentZoom:" + parentZoom + ")");
+      throw new IllegalArgumentException(
+          "zoom of id already lesser than parentZoom (zoom:"
+              + zoom
+              + " parentZoom:"
+              + parentZoom
+              + ")");
     }
     if (zoom == parentZoom) {
       return zId;
@@ -211,59 +217,60 @@ public class ZGrid {
     return true;
   }
 
-  public static final Comparator<Long> ORDER_DFS_TOP_DOWN = (a, b) -> {
-    if(a == -1)
-      return (b == -1)?0:-1;
-    if(b == -1)
-      return 1;
-    
-    final long aZ = getZoom(a);
-    final long bZ = getZoom(b);
-    if (aZ == bZ) {
-      return Long.compare(a, b);
-    }
-    final long deltaZ = Math.abs(aZ - bZ);
-    final long aId = getIdWithoutZoom(a);
-    final long bId = getIdWithoutZoom(b);
-    final long x, y;
-    final int prio;
-    if (aZ < bZ) {
-      x = aId << DIMENSION * deltaZ;
-      y = bId;
-      prio = -1;
-    } else {
-      x = aId;
-      y = bId << DIMENSION * deltaZ;
-      prio = 1;
-    }
-    final int r = Long.compare(x, y);
-    return (r == 0) ? prio : r;
-  };
+  public static final Comparator<Long> ORDER_DFS_TOP_DOWN =
+      (a, b) -> {
+        if (a == -1) return (b == -1) ? 0 : -1;
+        if (b == -1) return 1;
 
-  public static final Comparator<Long> ORDER_DFS_BOTTOM_UP = (a, b) -> {
-    final long aZ = getZoom(a);
-    final long bZ = getZoom(b);
-    if (aZ == bZ) {
-      return Long.compare(a, b);
-    }
-    final long deltaZ = Math.abs(aZ - bZ);
-    final long aId = getIdWithoutZoom(a);
-    final long bId = getIdWithoutZoom(b);
-    final long x, y;
-    final int prio;
+        final long aZ = getZoom(a);
+        final long bZ = getZoom(b);
+        if (aZ == bZ) {
+          return Long.compare(a, b);
+        }
+        final long deltaZ = Math.abs(aZ - bZ);
+        final long aId = getIdWithoutZoom(a);
+        final long bId = getIdWithoutZoom(b);
+        final long x, y;
+        final int prio;
+        if (aZ < bZ) {
+          x = aId << DIMENSION * deltaZ;
+          y = bId;
+          prio = -1;
+        } else {
+          x = aId;
+          y = bId << DIMENSION * deltaZ;
+          prio = 1;
+        }
+        final int r = Long.compare(x, y);
+        return (r == 0) ? prio : r;
+      };
 
-    if (aZ < bZ) {
-      x = aId;
-      y = bId >>> DIMENSION * deltaZ;
-      prio = 1;
-    } else {
-      x = aId >>> DIMENSION * deltaZ;;
-      y = bId;
-      prio = -1;
-    }
-    final int r = Long.compare(x, y);
-    return (r == 0) ? prio : r;
-  };
+  public static final Comparator<Long> ORDER_DFS_BOTTOM_UP =
+      (a, b) -> {
+        final long aZ = getZoom(a);
+        final long bZ = getZoom(b);
+        if (aZ == bZ) {
+          return Long.compare(a, b);
+        }
+        final long deltaZ = Math.abs(aZ - bZ);
+        final long aId = getIdWithoutZoom(a);
+        final long bId = getIdWithoutZoom(b);
+        final long x, y;
+        final int prio;
+
+        if (aZ < bZ) {
+          x = aId;
+          y = bId >>> DIMENSION * deltaZ;
+          prio = 1;
+        } else {
+          x = aId >>> DIMENSION * deltaZ;
+          ;
+          y = bId;
+          prio = -1;
+        }
+        final int r = Long.compare(x, y);
+        return (r == 0) ? prio : r;
+      };
 
   public static OSHDBBoundingBox WORLD = new OSHDBBoundingBox(-180.0, -90.0, 180.0, 180.0);
 
@@ -290,7 +297,6 @@ public class ZGrid {
         s.bbox = new OSHDBBoundingBox(0L, 0L, width, width);
         states[z] = s;
       }
-
     }
 
     @Override
@@ -325,20 +331,36 @@ public class ZGrid {
           OSHDBBoundingBox parentBBox = states[z - 1].bbox;
           switch (state.i) {
             case 0:
-              state.bbox = new OSHDBBoundingBox(parentBBox.getMinLonLong(), parentBBox.getMinLatLong(),
-                  parentBBox.getMinLonLong() + state.width, parentBBox.getMinLatLong() + state.width);
+              state.bbox =
+                  new OSHDBBoundingBox(
+                      parentBBox.getMinLonLong(),
+                      parentBBox.getMinLatLong(),
+                      parentBBox.getMinLonLong() + state.width,
+                      parentBBox.getMinLatLong() + state.width);
               break;
             case 1:
-              state.bbox = new OSHDBBoundingBox(parentBBox.getMinLonLong() + state.width, parentBBox.getMinLatLong(),
-                  parentBBox.getMinLonLong() + 2 * state.width, parentBBox.getMinLatLong() + state.width);
+              state.bbox =
+                  new OSHDBBoundingBox(
+                      parentBBox.getMinLonLong() + state.width,
+                      parentBBox.getMinLatLong(),
+                      parentBBox.getMinLonLong() + 2 * state.width,
+                      parentBBox.getMinLatLong() + state.width);
               break;
             case 2:
-              state.bbox = new OSHDBBoundingBox(parentBBox.getMinLonLong(), parentBBox.getMinLatLong() + state.width,
-                  parentBBox.getMinLonLong() + state.width, parentBBox.getMinLatLong() + 2 * state.width);
+              state.bbox =
+                  new OSHDBBoundingBox(
+                      parentBBox.getMinLonLong(),
+                      parentBBox.getMinLatLong() + state.width,
+                      parentBBox.getMinLonLong() + state.width,
+                      parentBBox.getMinLatLong() + 2 * state.width);
               break;
             case 3:
-              state.bbox = new OSHDBBoundingBox(parentBBox.getMinLonLong() + state.width, parentBBox.getMinLatLong() + state.width,
-                  parentBBox.getMinLonLong() + 2 * state.width, parentBBox.getMinLatLong() + 2 * state.width);
+              state.bbox =
+                  new OSHDBBoundingBox(
+                      parentBBox.getMinLonLong() + state.width,
+                      parentBBox.getMinLatLong() + state.width,
+                      parentBBox.getMinLonLong() + 2 * state.width,
+                      parentBBox.getMinLatLong() + 2 * state.width);
           }
           overlap = OSHDBBoundingBox.overlap(state.bbox, search);
         }

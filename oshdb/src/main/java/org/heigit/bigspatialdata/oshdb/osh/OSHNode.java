@@ -1,6 +1,5 @@
 package org.heigit.bigspatialdata.oshdb.osh;
 
-import com.google.common.collect.Lists;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -10,12 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.Predicate;
 import org.heigit.bigspatialdata.oshdb.osm.OSMEntity;
 import org.heigit.bigspatialdata.oshdb.osm.OSMNode;
-import org.heigit.bigspatialdata.oshdb.osm.OSMRelation;
 import org.heigit.bigspatialdata.oshdb.osm.OSMType;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBTimestamp;
@@ -40,9 +35,15 @@ public class OSHNode extends OSHEntity<OSMNode> implements Iterable<OSMNode>, Se
     return instance(data, offset, length, 0, 0, 0, 0);
   }
 
-  public static OSHNode instance(final byte[] data, final int offset, final int length,
-      final long baseNodeId, final long baseTimestamp, final long baseLongitude,
-      final long baseLatitude) throws IOException {
+  public static OSHNode instance(
+      final byte[] data,
+      final int offset,
+      final int length,
+      final long baseNodeId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude)
+      throws IOException {
 
     ByteArrayWrapper wrapper = ByteArrayWrapper.newInstance(data, offset, length);
     // header holds data on bitlevel and can then be compared to stereotypical
@@ -77,16 +78,50 @@ public class OSHNode extends OSHEntity<OSMNode> implements Iterable<OSMNode>, Se
     // TODO maybe better to store number of versions instead
     final int dataLength = length - (dataOffset - offset);
 
-    return new OSHNode(data, offset, length, baseNodeId, baseTimestamp, baseLongitude, baseLatitude,
-        header, id, bbox, keys, dataOffset, dataLength);
+    return new OSHNode(
+        data,
+        offset,
+        length,
+        baseNodeId,
+        baseTimestamp,
+        baseLongitude,
+        baseLatitude,
+        header,
+        id,
+        bbox,
+        keys,
+        dataOffset,
+        dataLength);
   }
 
-  private OSHNode(final byte[] data, final int offset, final int length, final long baseNodeId,
-      final long baseTimestamp, final long baseLongitude, final long baseLatitude,
-      final byte header, final long id, final OSHDBBoundingBox bbox, final int[] keys,
-      final int dataOffset, final int dataLength) {
-    super(data, offset, length, baseNodeId, baseTimestamp, baseLongitude, baseLatitude, header, id,
-        bbox, keys, dataOffset, dataLength);
+  private OSHNode(
+      final byte[] data,
+      final int offset,
+      final int length,
+      final long baseNodeId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final byte header,
+      final long id,
+      final OSHDBBoundingBox bbox,
+      final int[] keys,
+      final int dataOffset,
+      final int dataLength) {
+    super(
+        data,
+        offset,
+        length,
+        baseNodeId,
+        baseTimestamp,
+        baseLongitude,
+        baseLatitude,
+        header,
+        id,
+        bbox,
+        keys,
+        dataOffset,
+        dataLength);
   }
 
   @Override
@@ -175,8 +210,14 @@ public class OSHNode extends OSHEntity<OSMNode> implements Iterable<OSMNode>, Se
             latitude = wrapper.readSInt64() + latitude;
           }
 
-          return new OSMNode(id, version, new OSHDBTimestamp(baseTimestamp + timestamp), changeset,
-              userId, keyValues, (version > 0) ? baseLongitude + longitude : 0,
+          return new OSMNode(
+              id,
+              version,
+              new OSHDBTimestamp(baseTimestamp + timestamp),
+              changeset,
+              userId,
+              keyValues,
+              (version > 0) ? baseLongitude + longitude : 0,
               (version > 0) ? baseLatitude + latitude : 0);
         } catch (IOException e) {
           e.printStackTrace();
@@ -191,8 +232,13 @@ public class OSHNode extends OSHEntity<OSMNode> implements Iterable<OSMNode>, Se
     return build(versions, 0, 0, 0, 0);
   }
 
-  public static OSHNode build(List<OSMNode> versions, final long baseId, final long baseTimestamp,
-      final long baseLongitude, final long baseLatitude) throws IOException {
+  public static OSHNode build(
+      List<OSMNode> versions,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude)
+      throws IOException {
     Collections.sort(versions, Collections.reverseOrder());
 
     ByteArrayOutputWrapper output = new ByteArrayOutputWrapper();
@@ -267,13 +313,14 @@ public class OSHNode extends OSHEntity<OSMNode> implements Iterable<OSMNode>, Se
 
     record.writeUInt64(id - baseId);
     record.writeByteArray(output.array(), 0, output.length());
-    return OSHNode.instance(record.array(), 0, record.length(), baseId, baseTimestamp,
-        baseLongitude, baseLatitude);
+    return OSHNode.instance(
+        record.array(), 0, record.length(), baseId, baseTimestamp, baseLongitude, baseLatitude);
   }
 
   @Override
-  public OSHNode rebase(long baseNodeId, long baseTimestamp2, long baseLongitude2,
-      long baseLatitude2) throws IOException {
+  public OSHNode rebase(
+      long baseNodeId, long baseTimestamp2, long baseLongitude2, long baseLatitude2)
+      throws IOException {
     List<OSMNode> nodes = getVersions();
     return OSHNode.build(nodes, baseNodeId, baseTimestamp2, baseLongitude2, baseLatitude2);
   }

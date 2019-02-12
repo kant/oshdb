@@ -11,9 +11,15 @@ public class GridOSHNodes extends GridOSHEntity {
 
   private static final long serialVersionUID = 1L;
 
-  public static GridOSHNodes rebase(final long id, final int level, final long baseId,
-          final long baseTimestamp, final long baseLongitude, final long baseLatitude,
-          final List<OSHNode> list) throws IOException {
+  public static GridOSHNodes rebase(
+      final long id,
+      final int level,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final List<OSHNode> list)
+      throws IOException {
 
     int offset = 0;
 
@@ -28,12 +34,19 @@ public class GridOSHNodes extends GridOSHEntity {
       offset += buffer.length;
     }
     final byte[] data = out.toByteArray();
-    return new GridOSHNodes(id, level, baseId, baseTimestamp, baseLongitude, baseLatitude, index,
-            data);
+    return new GridOSHNodes(
+        id, level, baseId, baseTimestamp, baseLongitude, baseLatitude, index, data);
   }
 
-  private GridOSHNodes(final long id, final int level, final long baseId, final long baseTimestamp,
-          final long baseLongitude, final long baseLatitude, final int[] index, final byte[] data) {
+  private GridOSHNodes(
+      final long id,
+      final int level,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final int[] index,
+      final byte[] data) {
     super(id, level, baseId, baseTimestamp, baseLongitude, baseLatitude, index, data);
   }
 
@@ -48,8 +61,8 @@ public class GridOSHNodes extends GridOSHEntity {
         int length = ((pos < index.length - 1) ? index[pos + 1] : data.length) - offset;
         pos++;
         try {
-          return OSHNode.instance(data, offset, length, baseId, baseTimestamp, baseLongitude,
-                  baseLatitude);
+          return OSHNode.instance(
+              data, offset, length, baseId, baseTimestamp, baseLongitude, baseLatitude);
         } catch (IOException e) {
           e.printStackTrace();
         }

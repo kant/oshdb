@@ -20,7 +20,8 @@ public class FastPolygonOperations implements Serializable {
   private double envHeight;
 
   public <P extends Geometry & Polygonal> FastPolygonOperations(P geom) {
-    double optNumBands = Math.max(1.0, Math.sqrt(1.0 * geom.getNumPoints() / AVERAGE_VERTICES_PER_BLOCK));
+    double optNumBands =
+        Math.max(1.0, Math.sqrt(1.0 * geom.getNumPoints() / AVERAGE_VERTICES_PER_BLOCK));
     final int bandIterations = (int) Math.ceil(Math.log(optNumBands) / Math.log(2));
     numBands = (int) Math.pow(2, bandIterations);
 
@@ -30,76 +31,80 @@ public class FastPolygonOperations implements Serializable {
 
     GeometryFactory gf = new GeometryFactory();
 
-    Geometry[] result = new Geometry[numBands*numBands];
-    traverseQuads(bandIterations, 0,0, env, geom, gf, result);
+    Geometry[] result = new Geometry[numBands * numBands];
+    traverseQuads(bandIterations, 0, 0, env, geom, gf, result);
 
     blocks = new ArrayList<>(Arrays.asList(result));
   }
 
   private void traverseQuads(
       int level,
-      int x, int y,
+      int x,
+      int y,
       Envelope quadEnv,
       Geometry theGeom,
       GeometryFactory gf,
-      Geometry[] resultBuffer
-  ) {
+      Geometry[] resultBuffer) {
     if (level == 0) {
       int index = y + x * numBands;
       resultBuffer[index] = theGeom;
     } else {
-      Envelope bottomLeftPart = new Envelope(
-          quadEnv.getMinX(),
-          (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
-          quadEnv.getMinY(),
-          (quadEnv.getMinY() + quadEnv.getMaxY()) / 2
-      );
-      Envelope topLeftPart = new Envelope(
-          quadEnv.getMinX(),
-          (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
-          (quadEnv.getMinY() + quadEnv.getMaxY()) / 2,
-          quadEnv.getMaxY()
-      );
-      Envelope bottomRightPart = new Envelope(
-          (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
-          quadEnv.getMaxX(),
-          quadEnv.getMinY(),
-          (quadEnv.getMinY() + quadEnv.getMaxY()) / 2
-      );
-      Envelope topRightPart = new Envelope(
-          (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
-          quadEnv.getMaxX(),
-          (quadEnv.getMinY() + quadEnv.getMaxY()) / 2,
-          quadEnv.getMaxY()
-      );
-      traverseQuads(level - 1,
-          x * 2, y * 2,
+      Envelope bottomLeftPart =
+          new Envelope(
+              quadEnv.getMinX(),
+              (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
+              quadEnv.getMinY(),
+              (quadEnv.getMinY() + quadEnv.getMaxY()) / 2);
+      Envelope topLeftPart =
+          new Envelope(
+              quadEnv.getMinX(),
+              (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
+              (quadEnv.getMinY() + quadEnv.getMaxY()) / 2,
+              quadEnv.getMaxY());
+      Envelope bottomRightPart =
+          new Envelope(
+              (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
+              quadEnv.getMaxX(),
+              quadEnv.getMinY(),
+              (quadEnv.getMinY() + quadEnv.getMaxY()) / 2);
+      Envelope topRightPart =
+          new Envelope(
+              (quadEnv.getMinX() + quadEnv.getMaxX()) / 2,
+              quadEnv.getMaxX(),
+              (quadEnv.getMinY() + quadEnv.getMaxY()) / 2,
+              quadEnv.getMaxY());
+      traverseQuads(
+          level - 1,
+          x * 2,
+          y * 2,
           bottomLeftPart,
           theGeom.intersection(gf.toGeometry(bottomLeftPart)),
           gf,
-          resultBuffer
-      );
-      traverseQuads(level - 1,
-          x * 2, y * 2 + 1,
+          resultBuffer);
+      traverseQuads(
+          level - 1,
+          x * 2,
+          y * 2 + 1,
           topLeftPart,
           theGeom.intersection(gf.toGeometry(topLeftPart)),
           gf,
-          resultBuffer
-      );
-      traverseQuads(level - 1,
-          x * 2 + 1, y * 2,
+          resultBuffer);
+      traverseQuads(
+          level - 1,
+          x * 2 + 1,
+          y * 2,
           bottomRightPart,
           theGeom.intersection(gf.toGeometry(bottomRightPart)),
           gf,
-          resultBuffer
-      );
-      traverseQuads(level - 1,
-          x * 2 + 1, y * 2 + 1,
+          resultBuffer);
+      traverseQuads(
+          level - 1,
+          x * 2 + 1,
+          y * 2 + 1,
           topRightPart,
           theGeom.intersection(gf.toGeometry(topRightPart)),
           gf,
-          resultBuffer
-      );
+          resultBuffer);
     }
   }
 
@@ -107,16 +112,36 @@ public class FastPolygonOperations implements Serializable {
     if (other == null || other.isEmpty()) return other;
     Envelope otherEnv = other.getEnvelopeInternal();
 
-    int minBandX = Math.max(0, Math.min(numBands - 1, (int)Math.floor((otherEnv.getMinX() - env.getMinX())/envWidth * numBands)));
-    int maxBandX = Math.max(0, Math.min(numBands - 1, (int)Math.floor((otherEnv.getMaxX() - env.getMinX())/envWidth * numBands)));
-    int minBandY = Math.max(0, Math.min(numBands - 1, (int)Math.floor((otherEnv.getMinY() - env.getMinY())/envHeight * numBands)));
-    int maxBandY = Math.max(0, Math.min(numBands - 1, (int)Math.floor((otherEnv.getMaxY() - env.getMinY())/envHeight * numBands)));
+    int minBandX =
+        Math.max(
+            0,
+            Math.min(
+                numBands - 1,
+                (int) Math.floor((otherEnv.getMinX() - env.getMinX()) / envWidth * numBands)));
+    int maxBandX =
+        Math.max(
+            0,
+            Math.min(
+                numBands - 1,
+                (int) Math.floor((otherEnv.getMaxX() - env.getMinX()) / envWidth * numBands)));
+    int minBandY =
+        Math.max(
+            0,
+            Math.min(
+                numBands - 1,
+                (int) Math.floor((otherEnv.getMinY() - env.getMinY()) / envHeight * numBands)));
+    int maxBandY =
+        Math.max(
+            0,
+            Math.min(
+                numBands - 1,
+                (int) Math.floor((otherEnv.getMaxY() - env.getMinY()) / envHeight * numBands)));
 
     Geometry intersector = null;
 
     for (int x = minBandX; x <= maxBandX; x++) {
       for (int y = minBandY; y <= maxBandY; y++) {
-        Geometry block = blocks.get(y + x*numBands);
+        Geometry block = blocks.get(y + x * numBands);
         if (intersector == null) {
           intersector = block;
         } else {
@@ -128,7 +153,4 @@ public class FastPolygonOperations implements Serializable {
     assert intersector != null;
     return other.intersection(intersector);
   }
-
-
-
 }

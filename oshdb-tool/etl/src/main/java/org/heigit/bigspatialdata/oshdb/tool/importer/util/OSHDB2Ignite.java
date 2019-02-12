@@ -29,9 +29,7 @@ import org.heigit.bigspatialdata.oshdb.util.CellId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author Rafael Troilo <rafael.troilo@uni-heidelberg.de>
- */
+/** @author Rafael Troilo <rafael.troilo@uni-heidelberg.de> */
 public class OSHDB2Ignite {
 
   private static final Logger LOG = LoggerFactory.getLogger(OSHDB2Ignite.class);
@@ -44,7 +42,8 @@ public class OSHDB2Ignite {
    * @param prefix
    * @throws org.apache.ignite.IgniteCheckedException
    */
-  public static void load(File igniteXML, Connection oshdb, String prefix) throws IgniteCheckedException {
+  public static void load(File igniteXML, Connection oshdb, String prefix)
+      throws IgniteCheckedException {
     Ignition.setClientMode(true);
     IgniteConfiguration cfg = IgnitionEx.loadConfiguration(igniteXML.toString()).get1();
     cfg.setIgniteInstanceName("IgniteImportClientInstance");
@@ -61,13 +60,14 @@ public class OSHDB2Ignite {
         LOG.error("", ex);
       }
 
-      //deactive  cluster after import, so that all caches get persist
+      // deactive  cluster after import, so that all caches get persist
       ignite.cluster().active(false);
       ignite.cluster().active(true);
     }
   }
 
-  private static <T> void doGridImport(Ignite ignite, Statement stmt, TableNames cacheName, String prefix) {
+  private static <T> void doGridImport(
+      Ignite ignite, Statement stmt, TableNames cacheName, String prefix) {
     final String cacheWithPrefix = cacheName.toString(prefix);
 
     ignite.destroyCache(cacheWithPrefix);
@@ -101,14 +101,21 @@ public class OSHDB2Ignite {
       }
       try (final ResultSet rst = stmt.executeQuery("select level, id, data from " + tableName)) {
         int cnt = 0;
-        System.out.println(LocalDateTime.now() + " START loading " + tableName + " into " + cache.getName() + " on Ignite");
+        System.out.println(
+            LocalDateTime.now()
+                + " START loading "
+                + tableName
+                + " into "
+                + cache.getName()
+                + " on Ignite");
         while (rst.next()) {
           final int level = rst.getInt(1);
           final long id = rst.getLong(2);
           final long levelId = CellId.getLevelId(level, id);
 
           final ObjectInputStream ois = new ObjectInputStream(rst.getBinaryStream(3));
-//          System.out.printf("level:%d, id:%d -> LevelId:%16s%n", level, id, Long.toHexString(levelId));
+          //          System.out.printf("level:%d, id:%d -> LevelId:%16s%n", level, id,
+          // Long.toHexString(levelId));
           @SuppressWarnings("unchecked")
           final T grid = (T) ois.readObject();
           streamer.addData(levelId, grid);
@@ -116,7 +123,13 @@ public class OSHDB2Ignite {
             streamer.flush();
           }
         }
-        System.out.println(LocalDateTime.now() + " FINISHED loading " + tableName + " into " + cache.getName() + " on Ignite");
+        System.out.println(
+            LocalDateTime.now()
+                + " FINISHED loading "
+                + tableName
+                + " into "
+                + cache.getName()
+                + " on Ignite");
       } catch (IOException | ClassNotFoundException | SQLException e) {
         LOG.error("Could not import Grid!", e);
       }
@@ -128,18 +141,31 @@ public class OSHDB2Ignite {
   }
 
   private static class Config {
-    @Parameter(names = {"-ignite", "-igniteConfig", "-icfg"}, description = "Path ot ignite-config.xml", required = true, order = 1)
+    @Parameter(
+        names = {"-ignite", "-igniteConfig", "-icfg"},
+        description = "Path ot ignite-config.xml",
+        required = true,
+        order = 1)
     public File ignitexml;
 
-    @Parameter(names = {"--prefix"}, description = "cache table prefix", required = false)
+    @Parameter(
+        names = {"--prefix"},
+        description = "cache table prefix",
+        required = false)
     public String prefix;
 
-    @Parameter(names = {"-db", "-oshdb", "-outputDb"}, description = "Path to output H2", required = true, order = 2)
+    @Parameter(
+        names = {"-db", "-oshdb", "-outputDb"},
+        description = "Path to output H2",
+        required = true,
+        order = 2)
     public File oshdb;
 
-    @Parameter(names = {"-help", "--help", "-h", "--h"}, help = true, order = 0)
+    @Parameter(
+        names = {"-help", "--help", "-h", "--h"},
+        help = true,
+        order = 0)
     public boolean help = false;
-
   }
 
   public static void main(String[] args) throws SQLException, IgniteCheckedException {

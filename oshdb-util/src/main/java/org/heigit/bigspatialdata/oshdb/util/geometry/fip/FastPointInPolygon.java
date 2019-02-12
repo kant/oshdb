@@ -1,7 +1,6 @@
 package org.heigit.bigspatialdata.oshdb.util.geometry.fip;
 
 import com.vividsolutions.jts.geom.*;
-
 import java.util.function.Predicate;
 
 /**
@@ -13,9 +12,7 @@ public class FastPointInPolygon extends FastInPolygon implements Predicate<Point
     super(geom);
   }
 
-  /**
-   * Tests if the given bounding box is fully inside of the polygon
-   */
+  /** Tests if the given bounding box is fully inside of the polygon */
   @Override
   public boolean test(Point point) {
     return crossingNumber(point, true) % 2 == 1;

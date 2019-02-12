@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Locale;
 import org.heigit.bigspatialdata.oshdb.index.XYGrid;
 import org.heigit.bigspatialdata.oshdb.osh.OSHEntity;
-import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.heigit.bigspatialdata.oshdb.util.CellId;
+import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 
 public abstract class GridOSHEntity<HOSM extends OSHEntity<?>>
     implements Iterable<HOSM>, Serializable {
@@ -24,8 +24,15 @@ public abstract class GridOSHEntity<HOSM extends OSHEntity<?>>
   protected final int[] index;
   protected final byte[] data;
 
-  public GridOSHEntity(final long id, final int level, final long baseId, final long baseTimestamp,
-      final long baseLongitude, final long baseLatitude, final int[] index, final byte[] data) {
+  public GridOSHEntity(
+      final long id,
+      final int level,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final int[] index,
+      final byte[] data) {
 
     this.id = id;
     this.level = level;
@@ -50,8 +57,15 @@ public abstract class GridOSHEntity<HOSM extends OSHEntity<?>>
   public String toString() {
     if (id >= 0) {
       OSHDBBoundingBox bbox = XYGrid.getBoundingBox(new CellId((int) id, level));
-      return String.format(Locale.ENGLISH, "ID:%d Level:%d BBox:(%f,%f),(%f,%f)", id, level,
-          bbox.getMinLat(), bbox.getMinLon(), bbox.getMaxLat(), bbox.getMaxLon());
+      return String.format(
+          Locale.ENGLISH,
+          "ID:%d Level:%d BBox:(%f,%f),(%f,%f)",
+          id,
+          level,
+          bbox.getMinLat(),
+          bbox.getMinLon(),
+          bbox.getMaxLat(),
+          bbox.getMaxLon());
     } else {
       return String.format(Locale.ENGLISH, "ID:%d Level:%d", id, level);
     }

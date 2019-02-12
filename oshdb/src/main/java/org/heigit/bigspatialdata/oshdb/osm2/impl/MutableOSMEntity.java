@@ -13,8 +13,15 @@ public class MutableOSMEntity implements OSMEntity {
   private long changeset;
   private int userId;
   private int[] tags;
-     
-  public void setEntity(long id, int version, boolean visible, long timestamp, long changeset, int userId, int[] tags) {
+
+  public void setEntity(
+      long id,
+      int version,
+      boolean visible,
+      long timestamp,
+      long changeset,
+      int userId,
+      int[] tags) {
     this.id = id;
     this.version = version;
     this.visible = visible;
@@ -23,8 +30,7 @@ public class MutableOSMEntity implements OSMEntity {
     this.userId = userId;
     this.tags = tags;
   }
-  
-  
+
   public long getId() {
     return id;
   }
@@ -36,16 +42,15 @@ public class MutableOSMEntity implements OSMEntity {
   public int getVersion() {
     return version;
   }
-  
+
   @Override
   public boolean isVisible() {
     return visible;
   }
-  
+
   public void isVisible(boolean visible) {
     this.visible = visible;
   }
-  
 
   public void setVersion(int version) {
     this.version = version;
@@ -58,7 +63,7 @@ public class MutableOSMEntity implements OSMEntity {
   public void setTimestamp(OSHDBTimestamp timestamp) {
     this.timestamp = timestamp;
   }
-  
+
   public void setTimestamp(long timestamp) {
     this.timestamp.setTimestamp(timestamp);
   }
@@ -91,5 +96,4 @@ public class MutableOSMEntity implements OSMEntity {
   public String toString() {
     return asString();
   }
-
 }

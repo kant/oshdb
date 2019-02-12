@@ -1,8 +1,9 @@
 package org.heigit.bigspatialdata.oshdb.api.generic;
 
 /**
- * Immutable object that stores a numeric value and an associated weight.
- * Used to specify data input for the calculation of weighted averages.
+ * Immutable object that stores a numeric value and an associated weight. Used to specify data input
+ * for the calculation of weighted averages.
+ *
  * @param <X> A numeric data type for the value.
  */
 public class WeightedValue<X extends Number> {

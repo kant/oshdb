@@ -19,10 +19,10 @@ import org.heigit.bigspatialdata.oshdb.osm.OSMNode;
 import org.heigit.bigspatialdata.oshdb.osm.OSMRelation;
 import org.heigit.bigspatialdata.oshdb.osm.OSMWay;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBTimestamp;
+import org.heigit.bigspatialdata.oshdb.util.geometry.OSHDBGeometryBuilder;
 import org.heigit.bigspatialdata.oshdb.util.tagInterpreter.TagInterpreter;
 import org.heigit.bigspatialdata.oshdb.util.tagtranslator.OSMTag;
 import org.heigit.bigspatialdata.oshdb.util.tagtranslator.TagTranslator;
-import org.heigit.bigspatialdata.oshdb.util.geometry.OSHDBGeometryBuilder;
 import org.heigit.bigspatialdata.oshdb.util.time.TimestampFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,16 +39,16 @@ public class JSONTransformer {
    * @param <T>
    * @param entity The OSM-Entity to transform
    * @param timestamp The timestamp for which to create the geometry. NB: the geometry will be
-   *        created for exactly that point in time (see this.getGeometry()).
+   *     created for exactly that point in time (see this.getGeometry()).
    * @param tagtranslator a connection to a database to translate the coded integer back to human
-   *        readable string
+   *     readable string
    * @param areaDecider A list of tags, that define a polygon from a linestring. A default one is
-   *        available.
+   *     available.
    * @return A GeoJSON representation of the Object
-   *         (https://tools.ietf.org/html/rfc7946#section-3.3)
+   *     (https://tools.ietf.org/html/rfc7946#section-3.3)
    */
-  public static <T extends OSMEntity> JsonObject transform(T entity, OSHDBTimestamp timestamp,
-      TagTranslator tagtranslator, TagInterpreter areaDecider) {
+  public static <T extends OSMEntity> JsonObject transform(
+      T entity, OSHDBTimestamp timestamp, TagTranslator tagtranslator, TagInterpreter areaDecider) {
     // JSON for properties
     JsonObjectBuilder properties = Json.createObjectBuilder();
     JsonObjectBuilder result = Json.createObjectBuilder();
@@ -70,18 +70,29 @@ public class JSONTransformer {
     }
 
     // add other simple meta attributes
-    properties.add("@id", entity.getId()).add("@visible", entity.isVisible())
-        .add("@version", entity.getVersion()).add("@changeset", entity.getChangeset())
+    properties
+        .add("@id", entity.getId())
+        .add("@visible", entity.isVisible())
+        .add("@version", entity.getVersion())
+        .add("@changeset", entity.getChangeset())
         .add("@timestamp", TimestampFormatter.getInstance().isoDateTime(entity.getTimestamp()))
         .add("@geomtimestamp", TimestampFormatter.getInstance().isoDateTime(timestamp));
-    jsonid.append("/").append(entity.getId()).append("@")
+    jsonid
+        .append("/")
+        .append(entity.getId())
+        .append("@")
         .append(TimestampFormatter.getInstance().isoDateTime(timestamp));
 
     properties.add("@uid", entity.getUserId());
 
     for (int i = 0; i < entity.getRawTags().length; i += 2) {
-      properties = JSONTransformer.addRiskyKey(entity, entity.getRawTags()[i], entity.getRawTags()[i + 1],
-          tagtranslator, properties);
+      properties =
+          JSONTransformer.addRiskyKey(
+              entity,
+              entity.getRawTags()[i],
+              entity.getRawTags()[i + 1],
+              tagtranslator,
+              properties);
     }
 
     // add instance specific attributes
@@ -104,7 +115,8 @@ public class JSONTransformer {
         } catch (NullPointerException ex) {
           LOG.warn(
               "The TagTranslator could not resolve the member role {} of a member of relation/{}",
-              mem.getRawRoleId(), entity.getId());
+              mem.getRawRoleId(),
+              entity.getId());
           member.add("role", "<error: could not resolve>");
         }
         JSONMembers.add(member);
@@ -118,33 +130,48 @@ public class JSONTransformer {
       GeoJSON json = writer.write(OSHDBGeometryBuilder.getGeometry(entity, timestamp, areaDecider));
       JsonReader jsonReader = Json.createReader(new StringReader(json.toString()));
       JsonObject geom = jsonReader.readObject();
-      result.add("type", "Feature").add("id", jsonid.toString()).add("properties", properties)
+      result
+          .add("type", "Feature")
+          .add("id", jsonid.toString())
+          .add("properties", properties)
           .add("geometry", geom);
     } catch (NullPointerException ex) {
-      LOG.warn("Could not build the geometry of entity {} at timestamp {}", entity.toString(),
-          TimestampFormatter.getInstance().isoDateTime(timestamp), ex);
-      result.add("type", "Feature").add("id", jsonid.toString()).add("properties", properties)
+      LOG.warn(
+          "Could not build the geometry of entity {} at timestamp {}",
+          entity.toString(),
+          TimestampFormatter.getInstance().isoDateTime(timestamp),
+          ex);
+      result
+          .add("type", "Feature")
+          .add("id", jsonid.toString())
+          .add("properties", properties)
           .add("geometry", "<error: could not create geometry>");
     }
 
     return result.build();
   }
 
-  private static <T extends OSMEntity> JsonObjectBuilder addRiskyKey(T entity, int key, int value,
-      TagTranslator tagtranslator, JsonObjectBuilder properties) {
+  private static <T extends OSMEntity> JsonObjectBuilder addRiskyKey(
+      T entity, int key, int value, TagTranslator tagtranslator, JsonObjectBuilder properties) {
 
     try {
       OSMTag temptags = tagtranslator.getOSMTagOf(key, value);
       return properties.add(temptags.getKey(), temptags.getValue());
     } catch (NullPointerException ex) {
       try {
-        LOG.warn("The TagTranslator could not resolve a value (ValueID: {}) of Entity {}", value,
-            entity.toString(), ex);
+        LOG.warn(
+            "The TagTranslator could not resolve a value (ValueID: {}) of Entity {}",
+            value,
+            entity.toString(),
+            ex);
         String tempkey = tagtranslator.getOSMTagKeyOf(key).toString();
         return properties.add(tempkey, "<error: could not resolve value>");
       } catch (NullPointerException ex2) {
-        LOG.debug("The TagTranslator could ALSO not resolve the key (KeyID: {}) of Entity {}", key,
-            entity.toString(), ex2);
+        LOG.debug(
+            "The TagTranslator could ALSO not resolve the key (KeyID: {}) of Entity {}",
+            key,
+            entity.toString(),
+            ex2);
         return properties.add("<error: could not resolve key>", "<error: could not resolve value>");
       }
     }
@@ -155,23 +182,29 @@ public class JSONTransformer {
    * FeatureCollection, so you can see them all at once in your GIS.
    *
    * @param osmObjects A list of pairs, the left being the OSMEntity to convert and the right being
-   *        the point in time to use. So this leaves you with the option to get an overview of all
-   *        versions of one object, as fine grained as you wish.
+   *     the point in time to use. So this leaves you with the option to get an overview of all
+   *     versions of one object, as fine grained as you wish.
    * @param tagtranslator a connection to a database to translate the coded integer back to human
-   *        readable string
+   *     readable string
    * @param areaDecider A list of tags, that define a polygon from a linestring. A default one is
-   *        available.
+   *     available.
    * @return A GeoJSON-String representation of all these OSM-Objects
-   *         (https://tools.ietf.org/html/rfc7946#section-3.3
+   *     (https://tools.ietf.org/html/rfc7946#section-3.3
    */
-  public static JsonObject multiTransform(List<Pair<? extends OSMEntity, OSHDBTimestamp>> osmObjects,
-      TagTranslator tagtranslator, TagInterpreter areaDecider) {
+  public static JsonObject multiTransform(
+      List<Pair<? extends OSMEntity, OSHDBTimestamp>> osmObjects,
+      TagTranslator tagtranslator,
+      TagInterpreter areaDecider) {
     JsonObjectBuilder builder = Json.createObjectBuilder().add("type", "FeatureCollection");
     JsonArrayBuilder aBuilder = Json.createArrayBuilder();
-    osmObjects.stream().forEach((Pair<? extends OSMEntity, OSHDBTimestamp> OSMObject) -> {
-      aBuilder.add(JSONTransformer.transform(OSMObject.getKey(), OSMObject.getValue(),
-          tagtranslator, areaDecider));
-    });
+    osmObjects
+        .stream()
+        .forEach(
+            (Pair<? extends OSMEntity, OSHDBTimestamp> OSMObject) -> {
+              aBuilder.add(
+                  JSONTransformer.transform(
+                      OSMObject.getKey(), OSMObject.getValue(), tagtranslator, areaDecider));
+            });
     builder.add("features", aBuilder);
     return builder.build();
   }
@@ -183,14 +216,14 @@ public class JSONTransformer {
    * @param <T>
    * @param entity
    * @param tagtranslator a connection to a database to translate the coded integer back to human
-   *        readable string
+   *     readable string
    * @param areaDecider A list of tags, that define a polygon from a linestring. A default one is
-   *        available.
+   *     available.
    * @return A string representation of the Object in GeoJSON-format
-   *         (https://tools.ietf.org/html/rfc7946#section-3.3)
+   *     (https://tools.ietf.org/html/rfc7946#section-3.3)
    */
-  public static <T extends OSHEntity> JsonObject transform(T entity, TagTranslator tagtranslator,
-      TagInterpreter areaDecider) {
+  public static <T extends OSHEntity> JsonObject transform(
+      T entity, TagTranslator tagtranslator, TagInterpreter areaDecider) {
 
     List<Pair<? extends OSMEntity, OSHDBTimestamp>> entities = new ArrayList<>(1);
     @SuppressWarnings("unchecked")
@@ -209,14 +242,14 @@ public class JSONTransformer {
    * @param <T>
    * @param entity
    * @param tagtranslator a connection to a database to translate the coded integer back to human
-   *        readable string
+   *     readable string
    * @param areaDecider A list of tags, that define a polygon from a linestring. A default one is
-   *        available.
+   *     available.
    * @return A string representation of the Object in GeoJSON-format
-   *         (https://tools.ietf.org/html/rfc7946#section-3.3)
+   *     (https://tools.ietf.org/html/rfc7946#section-3.3)
    */
-  public static <T extends GridOSHEntity> JsonObject transform(T entity,
-      TagTranslator tagtranslator, TagInterpreter areaDecider) {
+  public static <T extends GridOSHEntity> JsonObject transform(
+      T entity, TagTranslator tagtranslator, TagInterpreter areaDecider) {
     List<Pair<? extends OSMEntity, OSHDBTimestamp>> entities = new ArrayList<>(1);
 
     @SuppressWarnings("unchecked")
@@ -229,5 +262,4 @@ public class JSONTransformer {
   }
 
   private JSONTransformer() {}
-
 }

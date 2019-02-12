@@ -5,23 +5,24 @@ import java.util.Date;
 import java.util.TimeZone;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBTimestamp;
 
-/**
- * A helper class to transform timestamps between string, date and long.
- *
- */
+/** A helper class to transform timestamps between string, date and long. */
 public class TimestampFormatter {
 
   private static TimestampFormatter instance;
-  private final ThreadLocal<SimpleDateFormat> formatDate = ThreadLocal.withInitial(() -> {
-    SimpleDateFormat ret = new SimpleDateFormat("yyyy-MM-dd");
-    ret.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return ret;
-  });
-  private final ThreadLocal<SimpleDateFormat> formatIsoDateTime = ThreadLocal.withInitial(() -> {
-    SimpleDateFormat ret = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    ret.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return ret;
-  });
+  private final ThreadLocal<SimpleDateFormat> formatDate =
+      ThreadLocal.withInitial(
+          () -> {
+            SimpleDateFormat ret = new SimpleDateFormat("yyyy-MM-dd");
+            ret.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return ret;
+          });
+  private final ThreadLocal<SimpleDateFormat> formatIsoDateTime =
+      ThreadLocal.withInitial(
+          () -> {
+            SimpleDateFormat ret = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            ret.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return ret;
+          });
 
   /**
    * Get a standard TimestampFormatter.
@@ -56,8 +57,8 @@ public class TimestampFormatter {
   }
 
   /**
-   * Converts a unix-timestamp (oshdb-timestamp) to the format
-   * {@code yyyy-MM-dd'T'HH:mm:ss'Z'} (OSM-Timestamp).
+   * Converts a unix-timestamp (oshdb-timestamp) to the format {@code yyyy-MM-dd'T'HH:mm:ss'Z'}
+   * (OSM-Timestamp).
    *
    * @param timestamp the timestamp to be printed
    * @return the formatted date string
@@ -75,5 +76,4 @@ public class TimestampFormatter {
   public String isoDateTime(OSHDBTimestamp date) {
     return this.isoDateTime(date.getRawUnixTimestamp());
   }
-
 }

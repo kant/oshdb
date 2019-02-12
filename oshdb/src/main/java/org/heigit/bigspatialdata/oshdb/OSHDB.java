@@ -11,7 +11,7 @@ public abstract class OSHDB {
   /**
    * Returns various metadata properties of this OSHDB instance
    *
-   * For example, metadata("extract.region") returns the geographic region for which the current
+   * <p>For example, metadata("extract.region") returns the geographic region for which the current
    * oshdb extract has been generated in GeoJSON format.
    *
    * @param property the metadata property to request

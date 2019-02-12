@@ -5,7 +5,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,9 +20,7 @@ import org.heigit.bigspatialdata.oshdb.api.object.OSHDBMapReducible;
 import org.heigit.bigspatialdata.oshdb.osm.OSMType;
 import org.heigit.bigspatialdata.oshdb.util.exceptions.OSHDBTableNotFoundException;
 
-/**
- * OSHDB database backend connector to a JDBC database file.
- */
+/** OSHDB database backend connector to a JDBC database file. */
 public class OSHDBJdbc extends OSHDBDatabase implements AutoCloseable {
 
   protected Connection connection;
@@ -52,14 +49,16 @@ public class OSHDBJdbc extends OSHDBDatabase implements AutoCloseable {
   @Override
   public <X extends OSHDBMapReducible> MapReducer<X> createMapReducer(Class<X> forClass) {
     try {
-      Collection<String> expectedTables = Stream.of(OSMType.values())
-          .map(TableNames::forOSMType).filter(Optional::isPresent).map(Optional::get)
-          .map(t -> t.toString(this.prefix()).toLowerCase())
-          .collect(Collectors.toList());
+      Collection<String> expectedTables =
+          Stream.of(OSMType.values())
+              .map(TableNames::forOSMType)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .map(t -> t.toString(this.prefix()).toLowerCase())
+              .collect(Collectors.toList());
       List<String> allTables = new LinkedList<>();
-      ResultSet rs = this.getConnection().getMetaData().getTables(null, null,
-          "%", new String[]{"TABLE"}
-      );
+      ResultSet rs =
+          this.getConnection().getMetaData().getTables(null, null, "%", new String[] {"TABLE"});
       while (rs.next()) {
         allTables.add(rs.getString("TABLE_NAME").toLowerCase());
       }
@@ -82,9 +81,11 @@ public class OSHDBJdbc extends OSHDBDatabase implements AutoCloseable {
   @Override
   public String metadata(String property) {
     try {
-      PreparedStatement stmt = connection.prepareStatement(
-          "SELECT value from " + TableNames.T_METADATA.toString(this.prefix()) + " where key=?"
-      );
+      PreparedStatement stmt =
+          connection.prepareStatement(
+              "SELECT value from "
+                  + TableNames.T_METADATA.toString(this.prefix())
+                  + " where key=?");
       stmt.setString(1, property);
       ResultSet result = stmt.executeQuery();
       if (result.next()) {

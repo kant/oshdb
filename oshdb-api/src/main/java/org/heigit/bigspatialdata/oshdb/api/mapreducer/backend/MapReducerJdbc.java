@@ -34,27 +34,27 @@ abstract class MapReducerJdbc<X> extends MapReducer<X> {
 
   protected ResultSet getOshCellsRawDataFromDb(Pair<CellId, CellId> cellIdRange)
       throws SQLException {
-    String sqlQuery = this.typeFilter.stream()
-        .map(osmType ->
-            TableNames.forOSMType(osmType).map(tn -> tn.toString(this.oshdb.prefix()))
-        )
-        .filter(Optional::isPresent).map(Optional::get)
-        .map(tn -> "(select data from " + tn + " where level = ?1 and id between ?2 and ?3)")
-        .collect(Collectors.joining(" union all "));
-    PreparedStatement pstmt = ((OSHDBJdbc)this.oshdb).getConnection().prepareStatement(sqlQuery);
+    String sqlQuery =
+        this.typeFilter
+            .stream()
+            .map(
+                osmType ->
+                    TableNames.forOSMType(osmType).map(tn -> tn.toString(this.oshdb.prefix())))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(tn -> "(select data from " + tn + " where level = ?1 and id between ?2 and ?3)")
+            .collect(Collectors.joining(" union all "));
+    PreparedStatement pstmt = ((OSHDBJdbc) this.oshdb).getConnection().prepareStatement(sqlQuery);
     pstmt.setInt(1, cellIdRange.getLeft().getZoomLevel());
     pstmt.setLong(2, cellIdRange.getLeft().getId());
     pstmt.setLong(3, cellIdRange.getRight().getId());
     return pstmt.executeQuery();
   }
 
-  /**
-   * Returns data of one cell from the raw data stream.
-   */
+  /** Returns data of one cell from the raw data stream. */
   protected GridOSHEntity readOshCellRawData(ResultSet oshCellsRawData)
       throws IOException, ClassNotFoundException, SQLException {
-    return (GridOSHEntity)
-        (new ObjectInputStream(oshCellsRawData.getBinaryStream(1))).readObject();
+    return (GridOSHEntity) (new ObjectInputStream(oshCellsRawData.getBinaryStream(1))).readObject();
   }
 
   @Nonnull
@@ -64,34 +64,36 @@ abstract class MapReducerJdbc<X> extends MapReducer<X> {
       if (!oshCellsRawData.next()) {
         return Stream.empty();
       }
-      return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
-          new Iterator<GridOSHEntity>() {
-            @Override
-            public boolean hasNext() {
-              try {
-                return !oshCellsRawData.isClosed();
-              } catch (SQLException e) {
-                throw new RuntimeException(e);
-              }
-            }
+      return StreamSupport.stream(
+          Spliterators.spliteratorUnknownSize(
+              new Iterator<GridOSHEntity>() {
+                @Override
+                public boolean hasNext() {
+                  try {
+                    return !oshCellsRawData.isClosed();
+                  } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                  }
+                }
 
-            @Override
-            public GridOSHEntity next() {
-              try {
-                if (!hasNext()) {
-                  throw new NoSuchElementException();
+                @Override
+                public GridOSHEntity next() {
+                  try {
+                    if (!hasNext()) {
+                      throw new NoSuchElementException();
+                    }
+                    GridOSHEntity data = readOshCellRawData(oshCellsRawData);
+                    if (!oshCellsRawData.next()) {
+                      oshCellsRawData.close();
+                    }
+                    return data;
+                  } catch (IOException | ClassNotFoundException | SQLException e) {
+                    throw new RuntimeException(e);
+                  }
                 }
-                GridOSHEntity data = readOshCellRawData(oshCellsRawData);
-                if (!oshCellsRawData.next()) {
-                  oshCellsRawData.close();
-                }
-                return data;
-              } catch (IOException | ClassNotFoundException | SQLException e) {
-                throw new RuntimeException(e);
-              }
-            }
-          }, 0
-      ), false);
+              },
+              0),
+          false);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }

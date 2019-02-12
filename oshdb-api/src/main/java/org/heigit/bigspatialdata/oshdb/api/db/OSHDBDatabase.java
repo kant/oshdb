@@ -4,9 +4,7 @@ import org.heigit.bigspatialdata.oshdb.OSHDB;
 import org.heigit.bigspatialdata.oshdb.api.mapreducer.MapReducer;
 import org.heigit.bigspatialdata.oshdb.api.object.OSHDBMapReducible;
 
-/**
- * OSHDB database backend connector.
- */
+/** OSHDB database backend connector. */
 public abstract class OSHDBDatabase extends OSHDB implements AutoCloseable {
   private String prefix = "";
 
@@ -15,7 +13,7 @@ public abstract class OSHDBDatabase extends OSHDB implements AutoCloseable {
    * oshdb backend implemenation.
    *
    * @param forClass the data type class to iterate over in the `mapping` function of the generated
-   *        MapReducer
+   *     MapReducer
    * @return a new mapReducer object operating on the given OSHDB backend
    */
   public abstract <X extends OSHDBMapReducible> MapReducer<X> createMapReducer(Class<X> forClass);
@@ -23,21 +21,17 @@ public abstract class OSHDBDatabase extends OSHDB implements AutoCloseable {
   /**
    * Returns metadata about the given OSHDB.
    *
-   * <p>For example copyright information, currentness of the data, spatial extent, etc.</p>
+   * <p>For example copyright information, currentness of the data, spatial extent, etc.
    */
   public abstract String metadata(String property);
 
-  /**
-   * Sets the "table/cache" name prefix to be used with this oshdb.
-   */
+  /** Sets the "table/cache" name prefix to be used with this oshdb. */
   public OSHDBDatabase prefix(String prefix) {
     this.prefix = prefix;
     return this;
   }
 
-  /**
-   * Returns the currently set db "table/cache" name prefix.
-   */
+  /** Returns the currently set db "table/cache" name prefix. */
   public String prefix() {
     return this.prefix;
   }

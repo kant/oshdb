@@ -17,9 +17,7 @@ public class FastPolygonOperationsTest {
     GeometryFactory gf = new GeometryFactory();
 
     assertEquals(
-        pop.intersection(gf.createPoint((Coordinate) null)),
-        gf.createPoint((Coordinate) null)
-    );
+        pop.intersection(gf.createPoint((Coordinate) null)), gf.createPoint((Coordinate) null));
   }
 
   @Test
@@ -29,9 +27,6 @@ public class FastPolygonOperationsTest {
 
     GeometryFactory gf = new GeometryFactory();
 
-    assertEquals(
-        pop.intersection((Polygon) null),
-        null
-    );
+    assertEquals(pop.intersection((Polygon) null), null);
   }
 }

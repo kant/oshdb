@@ -24,8 +24,7 @@ class Kernels implements Serializable {
     boolean isActive();
   }
 
-  private static class NonCancelableProcessStatus
-      implements CancelableProcessStatus, Serializable {
+  private static class NonCancelableProcessStatus implements CancelableProcessStatus, Serializable {
     @Override
     public boolean isActive() {
       return true;
@@ -40,8 +39,7 @@ class Kernels implements Serializable {
   static <R, S> CellProcessor<S> getOSMContributionCellReducer(
       SerializableFunction<OSMContribution, R> mapper,
       SerializableSupplier<S> identitySupplier,
-      SerializableBiFunction<S, R, S> accumulator
-  ) {
+      SerializableBiFunction<S, R, S> accumulator) {
     return getOSMContributionCellReducer(mapper, identitySupplier, accumulator, NC);
   }
 
@@ -50,17 +48,19 @@ class Kernels implements Serializable {
       SerializableFunction<OSMContribution, R> mapper,
       SerializableSupplier<S> identitySupplier,
       SerializableBiFunction<S, R, S> accumulator,
-      CancelableProcessStatus aborter
-  ) {
+      CancelableProcessStatus aborter) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
       AtomicReference<S> accInternal = new AtomicReference<>(identitySupplier.get());
-      cellIterator.iterateByContribution(oshEntityCell)
+      cellIterator
+          .iterateByContribution(oshEntityCell)
           .filter(ignored -> aborter.isActive())
-          .forEach(contribution -> {
-            OSMContribution osmContribution = new OSMContribution(contribution);
-            accInternal.set(accumulator.apply(accInternal.get(), mapper.apply(osmContribution)));
-          });
+          .forEach(
+              contribution -> {
+                OSMContribution osmContribution = new OSMContribution(contribution);
+                accInternal.set(
+                    accumulator.apply(accInternal.get(), mapper.apply(osmContribution)));
+              });
       return accInternal.get();
     };
   }
@@ -69,8 +69,7 @@ class Kernels implements Serializable {
   static <R, S> CellProcessor<S> getOSMContributionGroupingCellReducer(
       SerializableFunction<List<OSMContribution>, Iterable<R>> mapper,
       SerializableSupplier<S> identitySupplier,
-      SerializableBiFunction<S, R, S> accumulator
-  ) {
+      SerializableBiFunction<S, R, S> accumulator) {
     return getOSMContributionGroupingCellReducer(mapper, identitySupplier, accumulator, NC);
   }
 
@@ -79,27 +78,28 @@ class Kernels implements Serializable {
       SerializableFunction<List<OSMContribution>, Iterable<R>> mapper,
       SerializableSupplier<S> identitySupplier,
       SerializableBiFunction<S, R, S> accumulator,
-      CancelableProcessStatus aborter
-  ) {
+      CancelableProcessStatus aborter) {
     return (oshEntityCell, cellIterator) -> {
       AtomicReference<S> accInternal = new AtomicReference<>(identitySupplier.get());
       // iterate over the history of all OSM objects in the current cell
       List<OSMContribution> contributions = new ArrayList<>();
-      cellIterator.iterateByContribution(oshEntityCell)
+      cellIterator
+          .iterateByContribution(oshEntityCell)
           .filter(ignored -> aborter.isActive())
-          .forEach(contribution -> {
-            OSMContribution thisContribution = new OSMContribution(contribution);
-            if (contributions.size() > 0
-                && thisContribution.getEntityAfter().getId() != contributions
-                .get(contributions.size() - 1).getEntityAfter().getId()) {
-              // immediately fold the results
-              for (R r : mapper.apply(contributions)) {
-                accInternal.set(accumulator.apply(accInternal.get(), r));
-              }
-              contributions.clear();
-            }
-            contributions.add(thisContribution);
-          });
+          .forEach(
+              contribution -> {
+                OSMContribution thisContribution = new OSMContribution(contribution);
+                if (contributions.size() > 0
+                    && thisContribution.getEntityAfter().getId()
+                        != contributions.get(contributions.size() - 1).getEntityAfter().getId()) {
+                  // immediately fold the results
+                  for (R r : mapper.apply(contributions)) {
+                    accInternal.set(accumulator.apply(accInternal.get(), r));
+                  }
+                  contributions.clear();
+                }
+                contributions.add(thisContribution);
+              });
       // apply mapper and fold results one more time for last entity in current cell
       if (contributions.size() > 0) {
         for (R r : mapper.apply(contributions)) {
@@ -114,8 +114,7 @@ class Kernels implements Serializable {
   static <R, S> CellProcessor<S> getOSMEntitySnapshotCellReducer(
       SerializableFunction<OSMEntitySnapshot, R> mapper,
       SerializableSupplier<S> identitySupplier,
-      SerializableBiFunction<S, R, S> accumulator
-  ) {
+      SerializableBiFunction<S, R, S> accumulator) {
     return getOSMEntitySnapshotCellReducer(mapper, identitySupplier, accumulator, NC);
   }
 
@@ -124,18 +123,19 @@ class Kernels implements Serializable {
       SerializableFunction<OSMEntitySnapshot, R> mapper,
       SerializableSupplier<S> identitySupplier,
       SerializableBiFunction<S, R, S> accumulator,
-      CancelableProcessStatus aborter
-  ) {
+      CancelableProcessStatus aborter) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
       AtomicReference<S> accInternal = new AtomicReference<>(identitySupplier.get());
-      cellIterator.iterateByTimestamps(oshEntityCell)
+      cellIterator
+          .iterateByTimestamps(oshEntityCell)
           .filter(ignored -> aborter.isActive())
-          .forEach(data -> {
-            OSMEntitySnapshot snapshot = new OSMEntitySnapshot(data);
-            // immediately fold the result
-            accInternal.set(accumulator.apply(accInternal.get(), mapper.apply(snapshot)));
-          });
+          .forEach(
+              data -> {
+                OSMEntitySnapshot snapshot = new OSMEntitySnapshot(data);
+                // immediately fold the result
+                accInternal.set(accumulator.apply(accInternal.get(), mapper.apply(snapshot)));
+              });
       return accInternal.get();
     };
   }
@@ -144,8 +144,7 @@ class Kernels implements Serializable {
   static <R, S> CellProcessor<S> getOSMEntitySnapshotGroupingCellReducer(
       SerializableFunction<List<OSMEntitySnapshot>, Iterable<R>> mapper,
       SerializableSupplier<S> identitySupplier,
-      SerializableBiFunction<S, R, S> accumulator
-  ) {
+      SerializableBiFunction<S, R, S> accumulator) {
     return getOSMEntitySnapshotGroupingCellReducer(mapper, identitySupplier, accumulator, NC);
   }
 
@@ -154,27 +153,31 @@ class Kernels implements Serializable {
       SerializableFunction<List<OSMEntitySnapshot>, Iterable<R>> mapper,
       SerializableSupplier<S> identitySupplier,
       SerializableBiFunction<S, R, S> accumulator,
-      CancelableProcessStatus aborter
-  ) {
+      CancelableProcessStatus aborter) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
       AtomicReference<S> accInternal = new AtomicReference<>(identitySupplier.get());
       List<OSMEntitySnapshot> osmEntitySnapshots = new ArrayList<>();
-      cellIterator.iterateByTimestamps(oshEntityCell)
+      cellIterator
+          .iterateByTimestamps(oshEntityCell)
           .filter(ignored -> aborter.isActive())
-          .forEach(data -> {
-            OSMEntitySnapshot thisSnapshot = new OSMEntitySnapshot(data);
-            if (osmEntitySnapshots.size() > 0
-                && thisSnapshot.getEntity().getId() != osmEntitySnapshots
-                .get(osmEntitySnapshots.size() - 1).getEntity().getId()) {
-              // immediately fold the results
-              for (R r : mapper.apply(osmEntitySnapshots)) {
-                accInternal.set(accumulator.apply(accInternal.get(), r));
-              }
-              osmEntitySnapshots.clear();
-            }
-            osmEntitySnapshots.add(thisSnapshot);
-          });
+          .forEach(
+              data -> {
+                OSMEntitySnapshot thisSnapshot = new OSMEntitySnapshot(data);
+                if (osmEntitySnapshots.size() > 0
+                    && thisSnapshot.getEntity().getId()
+                        != osmEntitySnapshots
+                            .get(osmEntitySnapshots.size() - 1)
+                            .getEntity()
+                            .getId()) {
+                  // immediately fold the results
+                  for (R r : mapper.apply(osmEntitySnapshots)) {
+                    accInternal.set(accumulator.apply(accInternal.get(), r));
+                  }
+                  osmEntitySnapshots.clear();
+                }
+                osmEntitySnapshots.add(thisSnapshot);
+              });
       // apply mapper and fold results one more time for last entity in current cell
       if (osmEntitySnapshots.size() > 0) {
         for (R r : mapper.apply(osmEntitySnapshots)) {
@@ -189,11 +192,11 @@ class Kernels implements Serializable {
 
   @Nonnull
   static <S> CellProcessor<Collection<S>> getOSMContributionCellStreamer(
-      SerializableFunction<OSMContribution, S> mapper
-  ) {
+      SerializableFunction<OSMContribution, S> mapper) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
-      return cellIterator.iterateByContribution(oshEntityCell)
+      return cellIterator
+          .iterateByContribution(oshEntityCell)
           .map(OSMContribution::new)
           .map(mapper)
           .collect(Collectors.toList());
@@ -202,23 +205,25 @@ class Kernels implements Serializable {
 
   @Nonnull
   static <S> CellProcessor<Collection<S>> getOSMContributionGroupingCellStreamer(
-      SerializableFunction<List<OSMContribution>, Iterable<S>> mapper
-  ) {
+      SerializableFunction<List<OSMContribution>, Iterable<S>> mapper) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
       List<OSMContribution> contributions = new ArrayList<>();
       List<S> result = new LinkedList<>();
-      cellIterator.iterateByContribution(oshEntityCell)
+      cellIterator
+          .iterateByContribution(oshEntityCell)
           .map(OSMContribution::new)
-          .forEach(contribution -> {
-            if (contributions.size() > 0 && contribution.getEntityAfter().getId()
-                != contributions.get(contributions.size() - 1).getEntityAfter().getId()) {
-              // immediately flatten the results
-              Iterables.addAll(result, mapper.apply(contributions));
-              contributions.clear();
-            }
-            contributions.add(contribution);
-          });
+          .forEach(
+              contribution -> {
+                if (contributions.size() > 0
+                    && contribution.getEntityAfter().getId()
+                        != contributions.get(contributions.size() - 1).getEntityAfter().getId()) {
+                  // immediately flatten the results
+                  Iterables.addAll(result, mapper.apply(contributions));
+                  contributions.clear();
+                }
+                contributions.add(contribution);
+              });
       // apply mapper and fold results one more time for last entity in current cell
       if (contributions.size() > 0) {
         Iterables.addAll(result, mapper.apply(contributions));
@@ -229,11 +234,11 @@ class Kernels implements Serializable {
 
   @Nonnull
   static <S> CellProcessor<Collection<S>> getOSMEntitySnapshotCellStreamer(
-      SerializableFunction<OSMEntitySnapshot, S> mapper
-  ) {
+      SerializableFunction<OSMEntitySnapshot, S> mapper) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
-      return cellIterator.iterateByTimestamps(oshEntityCell)
+      return cellIterator
+          .iterateByTimestamps(oshEntityCell)
           .map(OSMEntitySnapshot::new)
           .map(mapper)
           .collect(Collectors.toList());
@@ -242,23 +247,25 @@ class Kernels implements Serializable {
 
   @Nonnull
   static <S> CellProcessor<Collection<S>> getOSMEntitySnapshotGroupingCellStreamer(
-      SerializableFunction<List<OSMEntitySnapshot>, Iterable<S>> mapper
-  ) {
+      SerializableFunction<List<OSMEntitySnapshot>, Iterable<S>> mapper) {
     return (oshEntityCell, cellIterator) -> {
       // iterate over the history of all OSM objects in the current cell
       List<OSMEntitySnapshot> snapshots = new ArrayList<>();
       List<S> result = new LinkedList<>();
-      cellIterator.iterateByTimestamps(oshEntityCell)
+      cellIterator
+          .iterateByTimestamps(oshEntityCell)
           .map(OSMEntitySnapshot::new)
-          .forEach(contribution -> {
-            if (snapshots.size() > 0 && contribution.getEntity().getId()
-                != snapshots.get(snapshots.size() - 1).getEntity().getId()) {
-              // immediately flatten the results
-              Iterables.addAll(result, mapper.apply(snapshots));
-              snapshots.clear();
-            }
-            snapshots.add(contribution);
-          });
+          .forEach(
+              contribution -> {
+                if (snapshots.size() > 0
+                    && contribution.getEntity().getId()
+                        != snapshots.get(snapshots.size() - 1).getEntity().getId()) {
+                  // immediately flatten the results
+                  Iterables.addAll(result, mapper.apply(snapshots));
+                  snapshots.clear();
+                }
+                snapshots.add(contribution);
+              });
       // apply mapper and fold results one more time for last entity in current cell
       if (snapshots.size() > 0) {
         Iterables.addAll(result, mapper.apply(snapshots));

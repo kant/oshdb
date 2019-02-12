@@ -1,19 +1,17 @@
 package org.heigit.bigspatialdata.oshdb.index;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.heigit.bigspatialdata.oshdb.util.CellId;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.junit.Test;
 
-/**
- *
- * @author Moritz Schott <m.schott@stud.uni-heidelberg.de>
- */
+/** @author Moritz Schott <m.schott@stud.uni-heidelberg.de> */
 public class XYGridTreeTest {
 
   @Test
@@ -24,11 +22,11 @@ public class XYGridTreeTest {
     Iterator<CellId> result = instance.getIds(longitude, latitude).iterator();
     Set<CellId> cellIds = Sets.newHashSet(result);
     assertEquals(5, cellIds.size());
-    assertTrue(cellIds.contains(new CellId(0,0L)));
-    assertTrue(cellIds.contains(new CellId(1,1L)));
-    assertTrue(cellIds.contains(new CellId(2,6L)));
-    assertTrue(cellIds.contains(new CellId(3,20L)));
-    assertTrue(cellIds.contains(new CellId(4,72L)));
+    assertTrue(cellIds.contains(new CellId(0, 0L)));
+    assertTrue(cellIds.contains(new CellId(1, 1L)));
+    assertTrue(cellIds.contains(new CellId(2, 6L)));
+    assertTrue(cellIds.contains(new CellId(3, 20L)));
+    assertTrue(cellIds.contains(new CellId(4, 72L)));
   }
 
   @Test
@@ -100,5 +98,4 @@ public class XYGridTreeTest {
     }
     assertEquals(0, expectedCellIds.size());
   }
-
 }

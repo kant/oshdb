@@ -6,9 +6,7 @@ import org.junit.Test;
 
 public class TestMapReduceOSHDB_JdbcMissingTables extends TestMapReduce {
   public TestMapReduceOSHDB_JdbcMissingTables() throws Exception {
-    super((new OSHDBH2("./src/test/resources/test-data"))
-        .prefix("<test tables not present>")
-    );
+    super((new OSHDBH2("./src/test/resources/test-data")).prefix("<test tables not present>"));
   }
 
   @Override

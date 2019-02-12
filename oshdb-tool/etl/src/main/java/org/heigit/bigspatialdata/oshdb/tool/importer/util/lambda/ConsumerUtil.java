@@ -1,7 +1,5 @@
 package org.heigit.bigspatialdata.oshdb.tool.importer.util.lambda;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class ConsumerUtil {
@@ -24,8 +22,10 @@ public class ConsumerUtil {
     };
   }
 
-  public static <T, E extends Exception> Consumer<T> throwingConsumer(ThrowingConsumer<T, Exception> consumer,
-      Class<E> clazz, ThrowingBiConsumer<T, E, Exception> exceptionHandler) {
+  public static <T, E extends Exception> Consumer<T> throwingConsumer(
+      ThrowingConsumer<T, Exception> consumer,
+      Class<E> clazz,
+      ThrowingBiConsumer<T, E, Exception> exceptionHandler) {
     return i -> {
       try {
         consumer.accept(i);

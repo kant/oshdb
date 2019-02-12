@@ -67,11 +67,11 @@ public class OutputWriter {
       throws IOException {
     File file = OutputWriter.getFile(username);
 
-    try (PrintWriter out = new PrintWriter(file);) {
-      output.forEach((Pair<String, String> pair) -> {
-        out.println(pair.getKey() + "," + pair.getValue());
-      });
-
+    try (PrintWriter out = new PrintWriter(file); ) {
+      output.forEach(
+          (Pair<String, String> pair) -> {
+            out.println(pair.getKey() + "," + pair.getValue());
+          });
     }
   }
 
@@ -87,7 +87,8 @@ public class OutputWriter {
     Class.forName("org.h2.Driver");
     return DriverManager.getConnection(
         "jdbc:h2:/opt/ignite/UserOutput/" + username + "_" + dateFormat.format(new Date()),
-        username, "");
+        username,
+        "");
   }
 
   /**
@@ -106,20 +107,18 @@ public class OutputWriter {
           "drop table if exists result; create table if not exists result(key varchar(max), value varchar(max))");
       try (PreparedStatement insert =
           conn.prepareStatement("insert into result (key,value) values(?,?)")) {
-        output.forEach((Pair<String, String> pair) -> {
-          try {
-            insert.setString(1, pair.getKey());
-            insert.setString(2, pair.getValue());
-            insert.addBatch();
-          } catch (SQLException ex) {
-            LOG.error(ex.toString());
-          }
-
-        });
+        output.forEach(
+            (Pair<String, String> pair) -> {
+              try {
+                insert.setString(1, pair.getKey());
+                insert.setString(2, pair.getValue());
+                insert.addBatch();
+              } catch (SQLException ex) {
+                LOG.error(ex.toString());
+              }
+            });
         insert.executeBatch();
-
       }
-
     }
   }
 
@@ -129,7 +128,8 @@ public class OutputWriter {
    * @param username your username. It will be part of the output.
    * @return
    */
-  public static Connection getPostgres(String username) throws ClassNotFoundException, SQLException {
+  public static Connection getPostgres(String username)
+      throws ClassNotFoundException, SQLException {
     Class.forName("org.postgresql.Driver");
     String usernameDate = username + "_" + dateFormat.format(new Date());
     try (Connection conn =
@@ -140,8 +140,8 @@ public class OutputWriter {
       stmt.executeUpdate(
           "GRANT ALL PRIVILEGES ON DATABASE " + usernameDate + " TO " + usernameDate);
     }
-    return DriverManager.getConnection("jdbc:postgresql://localhost:5432/" + usernameDate,
-        usernameDate, "password");
+    return DriverManager.getConnection(
+        "jdbc:postgresql://localhost:5432/" + usernameDate, usernameDate, "password");
   }
 
   /**
@@ -161,29 +161,26 @@ public class OutputWriter {
           "drop table if exists result; create table if not exists result(key text, value text)");
       try (PreparedStatement insert =
           conn2.prepareStatement("insert into result (key,value) values(?,?)")) {
-        output.forEach(pair -> {
-          try {
-            insert.setString(1, pair.getKey());
-            insert.setString(2, pair.getValue());
-            insert.addBatch();
-          } catch (SQLException ex) {
-            LOG.error(ex.toString());
-          }
-
-        });
+        output.forEach(
+            pair -> {
+              try {
+                insert.setString(1, pair.getKey());
+                insert.setString(2, pair.getValue());
+                insert.addBatch();
+              } catch (SQLException ex) {
+                LOG.error(ex.toString());
+              }
+            });
         insert.executeBatch();
-
       }
-
     }
-
   }
 
   /**
    * Creates the specified topic if it does not exist and creates a new KafkaProducer containing
    * your properties. It overwrites the "bootstrap.servers" property to make it work on the cluster.
-   * Be sure to provide all important properties (See
-   * <a href="https://kafka.apache.org/documentation/#producerconfigs"> Kafka Documentation</a>),
+   * Be sure to provide all important properties (See <a
+   * href="https://kafka.apache.org/documentation/#producerconfigs">Kafka Documentation</a>),
    * especially the Serialiser for your given K and V.
    *
    * @param <K> Key Type of your producer
@@ -199,7 +196,6 @@ public class OutputWriter {
     }
     props.put("bootstrap.servers", "localhost:9092");
     return new KafkaProducer<>(props);
-
   }
 
   /**
@@ -229,15 +225,17 @@ public class OutputWriter {
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-    try (Producer<String, String> producer = new KafkaProducer<>(props);) {
-      output.forEach(pair -> {
-        producer.send(new ProducerRecord<String, String>(topic, pair.getKey(), pair.getValue()));
-      });
+    try (Producer<String, String> producer = new KafkaProducer<>(props); ) {
+      output.forEach(
+          pair -> {
+            producer.send(
+                new ProducerRecord<String, String>(topic, pair.getKey(), pair.getValue()));
+          });
     }
   }
 
   private static void createKafkaTopic(String topic) {
-    String zookeeperConnect = "localhost:2181";// ,zkserver2:2181";
+    String zookeeperConnect = "localhost:2181"; // ,zkserver2:2181";
     int sessionTimeoutMs = 10 * 1000;
     int connectionTimeoutMs = 8 * 1000;
 
@@ -249,8 +247,9 @@ public class OutputWriter {
     // createTopic() will only seem to work (it will return without error). The topic will exist in
     // only ZooKeeper and will be returned when listing topics, but Kafka itself does not create the
     // topic.
-    ZkClient zkClient = new ZkClient(zookeeperConnect, sessionTimeoutMs, connectionTimeoutMs,
-        ZKStringSerializer$.MODULE$);
+    ZkClient zkClient =
+        new ZkClient(
+            zookeeperConnect, sessionTimeoutMs, connectionTimeoutMs, ZKStringSerializer$.MODULE$);
 
     // Security for Kafka was added in Kafka 0.9.0.0
     boolean isSecureKafkaCluster = false;
@@ -258,14 +257,12 @@ public class OutputWriter {
     ZkUtils zkUtils =
         new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), isSecureKafkaCluster);
     if (!AdminUtils.topicExists(zkUtils, topic)) {
-      AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig,
-          RackAwareMode.Enforced$.MODULE$);
+      AdminUtils.createTopic(
+          zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
     }
     zkClient.close();
     kafkatopic.add(topic);
-
   }
 
   private OutputWriter() {}
-
 }

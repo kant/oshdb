@@ -5,34 +5,33 @@
  */
 package org.heigit.bigspatialdata.oshdb.api.tests;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.heigit.bigspatialdata.oshdb.api.db.OSHDBDatabase;
 import org.heigit.bigspatialdata.oshdb.api.db.OSHDBJdbc;
 import org.heigit.bigspatialdata.oshdb.api.mapreducer.MapReducer;
 import org.heigit.bigspatialdata.oshdb.api.mapreducer.OSMContributionView;
 import org.heigit.bigspatialdata.oshdb.api.mapreducer.OSMEntitySnapshotView;
-import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
-import org.heigit.bigspatialdata.oshdb.util.time.OSHDBTimestamps;
 import org.heigit.bigspatialdata.oshdb.api.object.OSMContribution;
 import org.heigit.bigspatialdata.oshdb.api.object.OSMEntitySnapshot;
 import org.heigit.bigspatialdata.oshdb.osm.OSMType;
+import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
+import org.heigit.bigspatialdata.oshdb.util.time.OSHDBTimestamps;
 import org.junit.Test;
 
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-
-/**
- *
- */
+/** */
 abstract class TestMapReduce {
   final OSHDBDatabase oshdb;
   OSHDBJdbc keytables = null;
 
   private final OSHDBBoundingBox bbox = new OSHDBBoundingBox(8, 49, 9, 50);
-  private final OSHDBTimestamps timestamps6 = new OSHDBTimestamps("2010-01-01", "2015-01-01", OSHDBTimestamps.Interval.YEARLY);
-  private final OSHDBTimestamps timestamps72 = new OSHDBTimestamps("2010-01-01", "2015-12-01", OSHDBTimestamps.Interval.MONTHLY);
+  private final OSHDBTimestamps timestamps6 =
+      new OSHDBTimestamps("2010-01-01", "2015-01-01", OSHDBTimestamps.Interval.YEARLY);
+  private final OSHDBTimestamps timestamps72 =
+      new OSHDBTimestamps("2010-01-01", "2015-12-01", OSHDBTimestamps.Interval.MONTHLY);
 
   TestMapReduce(OSHDBDatabase oshdb) throws Exception {
     this.oshdb = oshdb;
@@ -53,136 +52,148 @@ abstract class TestMapReduce {
   @Test
   public void testOSMContributionView() throws Exception {
     // simple query
-    Set<Integer> result = createMapReducerOSMContribution()
-        .timestamps(timestamps72)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(OSMContribution::getContributorUserId)
-        .uniq();
+    Set<Integer> result =
+        createMapReducerOSMContribution()
+            .timestamps(timestamps72)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(OSMContribution::getContributorUserId)
+            .uniq();
 
     /* should be 5: first version doesn't have the highway tag, remaining 7 versions have 5 different contributor user ids*/
     assertEquals(5, result.size());
 
     // "flatMap"
-    result = createMapReducerOSMContribution()
-        .timestamps(timestamps72)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(OSMContribution::getContributorUserId)
-        .filter(uid -> uid > 0)
-        .uniq();
+    result =
+        createMapReducerOSMContribution()
+            .timestamps(timestamps72)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(OSMContribution::getContributorUserId)
+            .filter(uid -> uid > 0)
+            .uniq();
 
     /* should be 5: first version doesn't have the highway tag, remaining 7 versions have 5 different contributor user ids*/
     assertEquals(5, result.size());
 
     // "groupByEntity"
-    assertEquals(7, createMapReducerOSMContribution()
-        .timestamps(timestamps72)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .groupByEntity()
-        .map(List::size)
-        .sum()
-    );
+    assertEquals(
+        7,
+        createMapReducerOSMContribution()
+            .timestamps(timestamps72)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .groupByEntity()
+            .map(List::size)
+            .sum());
   }
 
   @Test
   public void testOSMEntitySnapshotView() throws Exception {
     // simple query
-    Set<Integer> result = createMapReducerOSMEntitySnapshot()
-        .timestamps(timestamps6)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(snapshot -> snapshot.getEntity().getUserId())
-        .uniq();
+    Set<Integer> result =
+        createMapReducerOSMEntitySnapshot()
+            .timestamps(timestamps6)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(snapshot -> snapshot.getEntity().getUserId())
+            .uniq();
 
     assertEquals(3, result.size());
 
     // "flatMap"
-    result = createMapReducerOSMEntitySnapshot()
-        .timestamps(timestamps6)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(snapshot -> snapshot.getEntity().getUserId())
-        .filter(uid -> uid > 0)
-        .uniq();
+    result =
+        createMapReducerOSMEntitySnapshot()
+            .timestamps(timestamps6)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(snapshot -> snapshot.getEntity().getUserId())
+            .filter(uid -> uid > 0)
+            .uniq();
 
     assertEquals(3, result.size());
 
     // "groupByEntity"
-    assertEquals(5, createMapReducerOSMEntitySnapshot()
-        .timestamps(timestamps6)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .groupByEntity()
-        .map(List::size)
-        .sum()
-    );
+    assertEquals(
+        5,
+        createMapReducerOSMEntitySnapshot()
+            .timestamps(timestamps6)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .groupByEntity()
+            .map(List::size)
+            .sum());
   }
 
   @Test
   public void testOSMContributionViewStream() throws Exception {
     // simple query
-    Set<Integer> result = createMapReducerOSMContribution()
-        .timestamps(timestamps72)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(OSMContribution::getContributorUserId)
-        .stream()
-        .collect(Collectors.toSet());
+    Set<Integer> result =
+        createMapReducerOSMContribution()
+            .timestamps(timestamps72)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(OSMContribution::getContributorUserId)
+            .stream()
+            .collect(Collectors.toSet());
 
     /* should be 5: first version doesn't have the highway tag, remaining 7 versions have 5 different contributor user ids*/
     assertEquals(5, result.size());
 
     // "flatMap"
-    result = createMapReducerOSMContribution()
-        .timestamps(timestamps72)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(OSMContribution::getContributorUserId)
-        .filter(uid -> uid > 0)
-        .stream()
-        .collect(Collectors.toSet());
+    result =
+        createMapReducerOSMContribution()
+            .timestamps(timestamps72)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(OSMContribution::getContributorUserId)
+            .filter(uid -> uid > 0)
+            .stream()
+            .collect(Collectors.toSet());
 
     /* should be 5: first version doesn't have the highway tag, remaining 7 versions have 5 different contributor user ids*/
     assertEquals(5, result.size());
 
     // "groupByEntity"
-    assertEquals(7, createMapReducerOSMContribution()
-        .timestamps(timestamps72)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .groupByEntity()
-        .map(List::size)
-        .stream()
-        .mapToInt(x -> x)
-        .reduce(0, (a,b) -> a+b)
-    );
+    assertEquals(
+        7,
+        createMapReducerOSMContribution()
+            .timestamps(timestamps72)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .groupByEntity()
+            .map(List::size)
+            .stream()
+            .mapToInt(x -> x)
+            .reduce(0, (a, b) -> a + b));
   }
 
   @Test
   public void testOSMEntitySnapshotViewStream() throws Exception {
     // simple stream query
-    Set<Integer> result = createMapReducerOSMEntitySnapshot()
-        .timestamps(timestamps6)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(snapshot -> snapshot.getEntity().getUserId())
-        .stream()
-        .collect(Collectors.toSet());
+    Set<Integer> result =
+        createMapReducerOSMEntitySnapshot()
+            .timestamps(timestamps6)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(snapshot -> snapshot.getEntity().getUserId())
+            .stream()
+            .collect(Collectors.toSet());
 
     assertEquals(3, result.size());
 
     // "flatMap"
-    result = createMapReducerOSMEntitySnapshot()
-        .timestamps(timestamps6)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .map(snapshot -> snapshot.getEntity().getUserId())
-        .filter(uid -> uid > 0)
-        .stream()
-        .collect(Collectors.toSet());
+    result =
+        createMapReducerOSMEntitySnapshot()
+            .timestamps(timestamps6)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .map(snapshot -> snapshot.getEntity().getUserId())
+            .filter(uid -> uid > 0)
+            .stream()
+            .collect(Collectors.toSet());
 
     assertEquals(3, result.size());
 
     // "groupByEntity"
-    assertEquals(5, createMapReducerOSMEntitySnapshot()
-        .timestamps(timestamps6)
-        .osmEntityFilter(entity -> entity.getId() == 617308093)
-        .groupByEntity()
-        .map(List::size)
-        .stream()
-        .mapToInt(x -> x)
-        .reduce(0, (a,b) -> a+b)
-    );
+    assertEquals(
+        5,
+        createMapReducerOSMEntitySnapshot()
+            .timestamps(timestamps6)
+            .osmEntityFilter(entity -> entity.getId() == 617308093)
+            .groupByEntity()
+            .map(List::size)
+            .stream()
+            .mapToInt(x -> x)
+            .reduce(0, (a, b) -> a + b));
   }
 }

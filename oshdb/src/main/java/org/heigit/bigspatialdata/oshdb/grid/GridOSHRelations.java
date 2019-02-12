@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-
 import org.heigit.bigspatialdata.oshdb.osh.OSHRelation;
 
 @SuppressWarnings("rawtypes")
@@ -12,9 +11,15 @@ public class GridOSHRelations extends GridOSHEntity {
 
   private static final long serialVersionUID = 1L;
 
-  public static GridOSHRelations compact(final long id, final int level, final long baseId,
-          final long baseTimestamp, final long baseLongitude, final long baseLatitude,
-          final List<OSHRelation> list) throws IOException {
+  public static GridOSHRelations compact(
+      final long id,
+      final int level,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final List<OSHRelation> list)
+      throws IOException {
 
     int offset = 0;
 
@@ -29,12 +34,19 @@ public class GridOSHRelations extends GridOSHEntity {
       offset += buffer.length;
     }
     final byte[] data = out.toByteArray();
-    return new GridOSHRelations(id, level, baseId, baseTimestamp, baseLongitude, baseLatitude, index,
-            data);
+    return new GridOSHRelations(
+        id, level, baseId, baseTimestamp, baseLongitude, baseLatitude, index, data);
   }
 
-  private GridOSHRelations(final long id, final int level, final long baseId, final long baseTimestamp,
-          final long baseLongitude, final long baseLatitude, final int[] index, final byte[] data) {
+  private GridOSHRelations(
+      final long id,
+      final int level,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final int[] index,
+      final byte[] data) {
     super(id, level, baseId, baseTimestamp, baseLongitude, baseLatitude, index, data);
   }
 
@@ -49,7 +61,8 @@ public class GridOSHRelations extends GridOSHEntity {
         int length = ((pos < index.length - 1) ? index[pos + 1] : data.length) - offset;
         pos++;
         try {
-          return OSHRelation.instance(data, offset, length, baseId, baseTimestamp, baseLongitude, baseLatitude);
+          return OSHRelation.instance(
+              data, offset, length, baseId, baseTimestamp, baseLongitude, baseLatitude);
         } catch (IOException e) {
           e.printStackTrace();
         }

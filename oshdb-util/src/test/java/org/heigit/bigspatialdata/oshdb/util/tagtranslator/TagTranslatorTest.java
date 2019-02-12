@@ -1,5 +1,7 @@
 package org.heigit.bigspatialdata.oshdb.util.tagtranslator;
 
+import static org.junit.Assert.assertEquals;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -8,7 +10,6 @@ import org.heigit.bigspatialdata.oshdb.util.OSHDBTag;
 import org.heigit.bigspatialdata.oshdb.util.OSHDBTagKey;
 import org.heigit.bigspatialdata.oshdb.util.exceptions.OSHDBKeytablesNotFoundException;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -22,8 +23,8 @@ public class TagTranslatorTest {
 
     // connect to the "Big"DB
     TagTranslatorTest.conn =
-        DriverManager.getConnection("jdbc:h2:./src/test/resources/test-data;ACCESS_MODE_DATA=r", "sa", "");
-
+        DriverManager.getConnection(
+            "jdbc:h2:./src/test/resources/test-data;ACCESS_MODE_DATA=r", "sa", "");
   }
 
   @AfterClass

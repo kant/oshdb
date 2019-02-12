@@ -69,8 +69,7 @@ public abstract class OSHEntity<OSM extends OSMEntity>
       lastChangeset = version.getChangeset();
 
       int userId = version.getUserId();
-      if (userId != lastUserId)
-        changed |= CHANGED_USER_ID;
+      if (userId != lastUserId) changed |= CHANGED_USER_ID;
 
       int[] keyValues = version.getRawTags();
 
@@ -90,14 +89,13 @@ public abstract class OSHEntity<OSM extends OSMEntity>
         for (int kv = 0; kv < keyValues.length; kv++) {
           output.writeUInt32(keyValues[kv]);
           if (kv % 2 == 0) // only keys
-            keySet.add(Integer.valueOf(keyValues[kv]));
+          keySet.add(Integer.valueOf(keyValues[kv]));
         }
         lastKeyValues = keyValues;
       }
 
       firstVersion = false;
     }
-
   }
 
   protected final byte[] data;
@@ -114,10 +112,20 @@ public abstract class OSHEntity<OSM extends OSMEntity>
   protected final int dataOffset;
   protected final int dataLength;
 
-  public OSHEntity(final byte[] data, final int offset, final int length, final long baseId,
-      final long baseTimestamp, final long baseLongitude, final long baseLatitude,
-      final byte header, final long id, final OSHDBBoundingBox bbox, final int[] keys,
-      final int dataOffset, final int dataLength) {
+  public OSHEntity(
+      final byte[] data,
+      final int offset,
+      final int length,
+      final long baseId,
+      final long baseTimestamp,
+      final long baseLongitude,
+      final long baseLatitude,
+      final byte header,
+      final long id,
+      final OSHDBBoundingBox bbox,
+      final int[] keys,
+      final int dataOffset,
+      final int dataLength) {
     this.data = data;
     this.offset = offset;
     this.length = length;
@@ -229,8 +237,8 @@ public abstract class OSHEntity<OSM extends OSMEntity>
     return false;
   }
 
-  public abstract OSHEntity<OSM> rebase(long baseId, long baseTimestamp, long baseLongitude,
-      long baseLatitude) throws IOException;
+  public abstract OSHEntity<OSM> rebase(
+      long baseId, long baseTimestamp, long baseLongitude, long baseLatitude) throws IOException;
 
   @Override
   public int compareTo(OSHEntity<OSM> o) {
@@ -262,11 +270,11 @@ public abstract class OSHEntity<OSM extends OSMEntity>
   /**
    * Returns the list of timestamps at which this entity was modified.
    *
-   * If the parameter "recurse" is set to true, it will also include modifications of the object's
-   * child elements (useful to find out when the geometry of this object has been altered).
+   * <p>If the parameter "recurse" is set to true, it will also include modifications of the
+   * object's child elements (useful to find out when the geometry of this object has been altered).
    *
    * @param recurse specifies if times of modifications of child entities should also be returned or
-   *        not
+   *     not
    * @return a list of timestamps where this entity has been modified
    * @deprecated use {@link OSHEntities#getModificationTimestamps(OSHEntity, boolean)}
    */
@@ -292,7 +300,7 @@ public abstract class OSHEntity<OSM extends OSMEntity>
    * Returns all timestamps at which this entity (or one or more of its child entities) has been
    * modified and matches a given condition/filter.
    *
-   * Consecutive modifications from a single changeset are grouped together (only the last
+   * <p>Consecutive modifications from a single changeset are grouped together (only the last
    * modification timestamp of the corresponding changeset is considered). This can reduce the
    * amount of geometry modifications by a lot (e.g. when sequential node uploads of a way
    * modification causes many intermediate modification states), making results more
@@ -300,20 +308,20 @@ public abstract class OSHEntity<OSM extends OSMEntity>
    *
    * @param osmEntityFilter only timestamps for which the entity matches this filter are returned
    * @param changesetTimestamps association between timestamps and changeset-ids, can be obtained
-   *        from oshEntity by calling {@link #getChangesetTimestamps}.
+   *     from oshEntity by calling {@link #getChangesetTimestamps}.
    * @return a list of timestamps where this entity has been modified
    * @deprecated use {@link OSHEntities#getModificationTimestamps(OSHEntity, Predicate, Map)}
    */
   @Deprecated
-  public List<OSHDBTimestamp> getModificationTimestamps(Predicate<OSMEntity> osmEntityFilter,
-      Map<OSHDBTimestamp, Long> changesetTimestamps) {
+  public List<OSHDBTimestamp> getModificationTimestamps(
+      Predicate<OSMEntity> osmEntityFilter, Map<OSHDBTimestamp, Long> changesetTimestamps) {
     return OSHEntities.getModificationTimestamps(this, osmEntityFilter, changesetTimestamps);
   }
 
   /**
    * Returns the changeset ids which correspond to modifications of this entity.
    *
-   * Used internally to group modifications by changeset.
+   * <p>Used internally to group modifications by changeset.
    *
    * @return a map between timestamps and changeset ids
    * @deprecated use {@link OSHEntities#getChangesetTimestamps(OSHEntity)}
@@ -325,11 +333,15 @@ public abstract class OSHEntity<OSM extends OSMEntity>
 
   @Override
   public String toString() {
-    return String.format(Locale.ENGLISH, "ID:%d Vmax:+%d+ Creation:%d BBox:(%f,%f),(%f,%f)", id,
+    return String.format(
+        Locale.ENGLISH,
+        "ID:%d Vmax:+%d+ Creation:%d BBox:(%f,%f),(%f,%f)",
+        id,
         getVersions().get(0).getVersion(),
         getVersions().get(getVersions().size() - 1).getTimestamp().getRawUnixTimestamp(),
-        getBoundingBox().getMinLat(), getBoundingBox().getMinLon(), getBoundingBox().getMaxLat(),
+        getBoundingBox().getMinLat(),
+        getBoundingBox().getMinLon(),
+        getBoundingBox().getMaxLat(),
         getBoundingBox().getMaxLon());
   }
-
 }

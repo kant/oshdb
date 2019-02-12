@@ -1,16 +1,14 @@
 package org.heigit.bigspatialdata.oshpbf.parser.pbf;
 
+import crosby.binary.Osmformat;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-
 import org.heigit.bigspatialdata.oshdb.osm.OSMType;
 import org.heigit.bigspatialdata.oshpbf.parser.osm.v0_6.Entity;
 import org.heigit.bigspatialdata.oshpbf.parser.rx.Osh;
-
-import crosby.binary.Osmformat;
 
 public class BlobToOSHIterator implements Iterator<Osh> {
 
@@ -22,10 +20,10 @@ public class BlobToOSHIterator implements Iterator<Osh> {
 
   public BlobToOSHIterator(PbfBlob blob, Osmformat.PrimitiveBlock block, boolean skipFirst) {
     this.blob = blob;
-    this.primitiveIterator = new OsmPrimitveBlockIterator(blob.pos, block,
-        EnumSet.of(OSMType.NODE, OSMType.WAY, OSMType.RELATION));
-    if (!primitiveIterator.hasNext())
-      return;
+    this.primitiveIterator =
+        new OsmPrimitveBlockIterator(
+            blob.pos, block, EnumSet.of(OSMType.NODE, OSMType.WAY, OSMType.RELATION));
+    if (!primitiveIterator.hasNext()) return;
 
     nextEntity = primitiveIterator.next();
     if (nextEntity.getVersion() != 1 && blob.isFirstBlob && skipFirst) {
@@ -51,8 +49,7 @@ public class BlobToOSHIterator implements Iterator<Osh> {
 
   @Override
   public Osh next() {
-    if (!hasNext())
-      throw new NoSuchElementException();
+    if (!hasNext()) throw new NoSuchElementException();
     Osh result = next;
     next = getNext();
     return result;
@@ -63,8 +60,7 @@ public class BlobToOSHIterator implements Iterator<Osh> {
   }
 
   private Osh getNext() {
-    if (nextEntity == null)
-      return null;
+    if (nextEntity == null) return null;
 
     final OSMType lastType = nextEntity.getType();
     final long lastId = nextEntity.getId();
@@ -78,19 +74,20 @@ public class BlobToOSHIterator implements Iterator<Osh> {
       final long id = e.getId();
       final OSMType type = e.getType();
       if (lastType != type) {
-        System.err.printf("diffrent types in one blob (id:%d/%d)(type:%s/%s) at blob:%d%n", lastId, id, lastType,
-            type, primitiveIterator.getBlockStartPosition());
+        System.err.printf(
+            "diffrent types in one blob (id:%d/%d)(type:%s/%s) at blob:%d%n",
+            lastId, id, lastType, type, primitiveIterator.getBlockStartPosition());
         break;
       }
       if (id != lastId) {
         if (!blob.overSoftLimit) {
           nextEntity = e;
         }
-        return new Osh(versions.get(0).getVersion() == 1, versions,blob.pos);
+        return new Osh(versions.get(0).getVersion() == 1, versions, blob.pos);
       }
 
       versions.add(e);
     }
-    return new Osh(false, versions,blob.pos);
+    return new Osh(false, versions, blob.pos);
   }
 }

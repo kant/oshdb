@@ -5,15 +5,14 @@
  */
 package org.heigit.bigspatialdata.oshdb.util.time;
 
-import org.heigit.bigspatialdata.oshdb.util.time.TimestampFormatter;
-import java.util.Date;
 import static org.junit.Assert.assertEquals;
+
+import java.util.Date;
 import org.junit.Test;
 
 public class TimestampFormatterTest {
 
-  public TimestampFormatterTest() {
-  }
+  public TimestampFormatterTest() {}
 
   @Test
   public void testDate() {
@@ -41,5 +40,4 @@ public class TimestampFormatterTest {
     String result = instance.isoDateTime(timestamp);
     assertEquals(expResult, result);
   }
-
 }

@@ -11,5 +11,4 @@ public class EmptyPage implements Page {
   public int weigh() {
     return 0;
   }
-
 }

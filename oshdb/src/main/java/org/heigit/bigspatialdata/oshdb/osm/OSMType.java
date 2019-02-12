@@ -13,7 +13,7 @@ public enum OSMType {
   }
 
   public static OSMType fromInt(final int value) {
-    switch(value) {
+    switch (value) {
       case 0:
         return NODE;
       case 1:
@@ -23,7 +23,6 @@ public enum OSMType {
       default:
         return UNKNOWN;
     }
-    
   }
 
   public final int intValue() {

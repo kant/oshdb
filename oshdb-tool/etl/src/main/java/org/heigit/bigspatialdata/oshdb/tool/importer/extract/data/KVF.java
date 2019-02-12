@@ -14,5 +14,4 @@ public class KVF {
     this.freq = freq;
     this.vfIterator = vfIterator;
   }
-
 }

@@ -46,27 +46,26 @@ import org.heigit.bigspatialdata.oshdb.util.tagtranslator.OSMTag;
 import org.heigit.bigspatialdata.oshdb.util.tagtranslator.OSMTagInterface;
 import org.jetbrains.annotations.Contract;
 
-
 /**
  * A MapReducer with built-in aggregation by an arbitrary index.
  *
  * <p>This class provides similar functionality as a MapReducer, with the difference that here the
  * `reduce` does automatic aggregation of results by the values returned by an arbitrary indexing
- * function.</p>
+ * function.
  *
  * <p>All results for which the set `indexer` returns the same value are aggregated into separate
  * "bins". This can be used to aggregate results by timestamp, geographic region, user id, osm tag,
- * etc.</p>
+ * etc.
  *
  * <p>Internally, this wraps around an existing MapReducer object, which still continues to be
- * responsible for all actual calculations.</p>
+ * responsible for all actual calculations.
  *
  * @param <X> the type that is returned by the currently set of mapper function. the next added
- *            mapper function will be called with a parameter of this type as input
+ *     mapper function will be called with a parameter of this type as input
  * @param <U> the type of the index values returned by the `mapper function`, used to group results
  */
-public class MapAggregator<U extends Comparable<U>, X> implements
-    Mappable<X>, MapReducerSettings<MapAggregator<U,X>>, MapReducerAggregations<X> {
+public class MapAggregator<U extends Comparable<U>, X>
+    implements Mappable<X>, MapReducerSettings<MapAggregator<U, X>>, MapReducerAggregations<X> {
   private MapReducer<Pair<U, X>> mapReducer;
   private final List<Collection<?>> zerofill;
 
@@ -75,19 +74,13 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    *
    * @param mapReducer mapReducer object which will be doing all actual calculations
    * @param indexer function that returns the index value into which to aggregate the respective
-   *        result
+   *     result
    * @param zerofill collection of index values that should always be present in the final result
-   *        (also if they don't appear in the requested data)
+   *     (also if they don't appear in the requested data)
    */
   MapAggregator(
-      MapReducer<X> mapReducer,
-      SerializableFunction<X, U> indexer,
-      Collection<U> zerofill
-  ) {
-    this.mapReducer = mapReducer.map(data -> new MutablePair<U, X>(
-        indexer.apply(data),
-        data
-    ));
+      MapReducer<X> mapReducer, SerializableFunction<X, U> indexer, Collection<U> zerofill) {
+    this.mapReducer = mapReducer.map(data -> new MutablePair<U, X>(indexer.apply(data), data));
     this.zerofill = new ArrayList<>(1);
     this.zerofill.add(zerofill);
   }
@@ -99,11 +92,11 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   }
 
   /**
-   * Creates new mapAggregator object for a specific mapReducer that already contains an
-   * aggregation index.
+   * Creates new mapAggregator object for a specific mapReducer that already contains an aggregation
+   * index.
    *
    * <p>Used internally for returning type safe copies of the current mapAggregator object after
-   * map/flatMap/filter operations.</p>
+   * map/flatMap/filter operations.
    *
    * @param mapReducer a special mapReducer for use in map-aggregate operations
    * @param <R> type of data to be "mapped"
@@ -134,14 +127,11 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    */
   @Contract(pure = true)
   public <V extends Comparable<V>> MapAggregator<OSHDBCombinedIndex<U, V>, X> aggregateBy(
-      SerializableFunction<X, V> indexer,
-      Collection<V> zerofill
-  ) {
-    MapAggregator<OSHDBCombinedIndex<U, V>, X> res = this
-        .mapIndex((existingIndex, data) -> new OSHDBCombinedIndex<U, V>(
-            existingIndex,
-            indexer.apply(data)
-        ));
+      SerializableFunction<X, V> indexer, Collection<V> zerofill) {
+    MapAggregator<OSHDBCombinedIndex<U, V>, X> res =
+        this.mapIndex(
+            (existingIndex, data) ->
+                new OSHDBCombinedIndex<U, V>(existingIndex, indexer.apply(data)));
     res.zerofill.add(zerofill);
     return res;
   }
@@ -154,8 +144,7 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    */
   @Contract(pure = true)
   public <V extends Comparable<V>> MapAggregator<OSHDBCombinedIndex<U, V>, X> aggregateBy(
-      SerializableFunction<X, V> indexer
-  ) {
+      SerializableFunction<X, V> indexer) {
     return this.aggregateBy(indexer, Collections.emptyList());
   }
 
@@ -163,65 +152,67 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Sets up aggregation by a custom time index.
    *
    * <p>The timestamps returned by the supplied indexing function are matched to the corresponding
-   * time intervals</p>
+   * time intervals
    *
-   * @param indexer a callback function that returns a timestamp object for each given data.
-   *                Note that if this function returns timestamps outside of the supplied
-   *                timestamps() interval results may be undefined
-   * @return a MapAggregatorByTimestampAndIndex object with the equivalent state (settings,
-   *         filters, map function, etc.) of the current MapReducer object
+   * @param indexer a callback function that returns a timestamp object for each given data. Note
+   *     that if this function returns timestamps outside of the supplied timestamps() interval
+   *     results may be undefined
+   * @return a MapAggregatorByTimestampAndIndex object with the equivalent state (settings, filters,
+   *     map function, etc.) of the current MapReducer object
    */
   @Contract(pure = true)
   public MapAggregator<OSHDBCombinedIndex<U, OSHDBTimestamp>, X> aggregateByTimestamp(
-      SerializableFunction<X, OSHDBTimestamp> indexer
-  ) {
+      SerializableFunction<X, OSHDBTimestamp> indexer) {
     final TreeSet<OSHDBTimestamp> timestamps = new TreeSet<>(this.mapReducer.tstamps.get());
-    return this.aggregateBy(data -> {
-      // match timestamps to the given timestamp list
-      return timestamps.floor(indexer.apply(data));
-    }, this.mapReducer.getZerofillTimestamps());
+    return this.aggregateBy(
+        data -> {
+          // match timestamps to the given timestamp list
+          return timestamps.floor(indexer.apply(data));
+        },
+        this.mapReducer.getZerofillTimestamps());
   }
-  
+
   /**
    * Aggregates the results by sub-regions as well, in addition to the timestamps.
    *
-   * <p>Cannot be used together with the `groupByEntity()` setting enabled.</p>
+   * <p>Cannot be used together with the `groupByEntity()` setting enabled.
    *
    * @return a MapAggregator object with the equivalent state (settings, filters, map function,
-   *         etc.) of the current MapReducer object
+   *     etc.) of the current MapReducer object
    * @throws UnsupportedOperationException if this is called when the `groupByEntity()` mode has
-   *         been activated
+   *     been activated
    * @throws UnsupportedOperationException when called after any map or flatMap functions are set
    */
   @Contract(pure = true)
   public <V extends Comparable<V>, P extends Geometry & Polygonal>
       MapAggregator<OSHDBCombinedIndex<U, V>, X> aggregateByGeometry(Map<V, P> geometries)
-      throws UnsupportedOperationException {
+          throws UnsupportedOperationException {
     if (this.mapReducer.grouping != Grouping.NONE) {
       throw new UnsupportedOperationException(
-          "aggregateByGeometry() cannot be used together with the groupByEntity() functionality"
-      );
+          "aggregateByGeometry() cannot be used together with the groupByEntity() functionality");
     }
 
     GeometrySplitter<V> gs = new GeometrySplitter<>(geometries);
     if (this.mapReducer.mappers.size() > 1) {
       // todo: fix
       throw new UnsupportedOperationException(
-          "please call aggregateByGeometry before setting any map or flatMap functions"
-      );
+          "please call aggregateByGeometry before setting any map or flatMap functions");
     } else {
       MapAggregator<OSHDBCombinedIndex<U, V>, ? extends OSHDBMapReducible> ret;
       if (this.mapReducer.forClass.equals(OSMContribution.class)) {
-        ret = this.flatMap(x -> gs.splitOSMContribution((OSMContribution) x))
-            .aggregateBy(Pair::getKey, geometries.keySet()).map(Pair::getValue);
+        ret =
+            this.flatMap(x -> gs.splitOSMContribution((OSMContribution) x))
+                .aggregateBy(Pair::getKey, geometries.keySet())
+                .map(Pair::getValue);
       } else if (this.mapReducer.forClass.equals(OSMEntitySnapshot.class)) {
-        ret = this.flatMap(x -> gs.splitOSMEntitySnapshot((OSMEntitySnapshot) x))
-            .aggregateBy(Pair::getKey, geometries.keySet()).map(Pair::getValue);
+        ret =
+            this.flatMap(x -> gs.splitOSMEntitySnapshot((OSMEntitySnapshot) x))
+                .aggregateBy(Pair::getKey, geometries.keySet())
+                .map(Pair::getValue);
       } else {
         throw new UnsupportedOperationException(
             "aggregateByGeometry not implemented for objects of type: "
-                + this.mapReducer.forClass.toString()
-        );
+                + this.mapReducer.forClass.toString());
       }
       //noinspection unchecked – no mapper functions have been applied, so the type is still X
       return (MapAggregator<OSHDBCombinedIndex<U, V>, X>) ret;
@@ -237,7 +228,7 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Set the area of interest to the given bounding box.
    *
    * <p>Only objects inside or clipped by this bbox will be passed on to the analysis' `mapper`
-   * function.</p>
+   * function.
    *
    * @param bboxFilter the bounding box to query the data in
    * @return a modified copy of this object (can be used to chain multiple commands together)
@@ -248,9 +239,8 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   }
 
   /**
-   * Set the area of interest to the given polygon.
-   * Only objects inside or clipped by this polygon will be passed on to the analysis'
-   * `mapper` function.
+   * Set the area of interest to the given polygon. Only objects inside or clipped by this polygon
+   * will be passed on to the analysis' `mapper` function.
    *
    * @param polygonFilter the bounding box to query the data in
    * @return a modified copy of this object (can be used to chain multiple commands together)
@@ -282,7 +272,6 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   public MapAggregator<U, X> osmEntityFilter(SerializablePredicate<OSMEntity> f) {
     return this.copyTransform(this.mapReducer.osmEntityFilter(f));
   }
-
 
   /**
    * Adds an osm tag filter: The analysis will be restricted to osm entities that have this tag key
@@ -323,8 +312,7 @@ public class MapAggregator<U extends Comparable<U>, X> implements
 
   /**
    * Adds an osm tag filter: The analysis will be restricted to osm entities that have this tag key
-   * and one of the
-   * given values.
+   * and one of the given values.
    *
    * @param key the tag key to filter the osm entities for
    * @param values an array of tag values to filter the osm entities for
@@ -371,27 +359,22 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Sums up the results.
    *
-   * <p>The current data values need to be numeric (castable to "Number" type), otherwise a
-   * runtime exception will be thrown.</p>
+   * <p>The current data values need to be numeric (castable to "Number" type), otherwise a runtime
+   * exception will be thrown.
    *
    * @return the sum of the current data
    * @throws UnsupportedOperationException if the data cannot be cast to numbers
    */
   @Contract(pure = true)
   public SortedMap<U, Number> sum() throws Exception {
-    return this
-        .makeNumeric()
-        .reduce(
-            () -> 0,
-            NumberUtils::add
-        );
+    return this.makeNumeric().reduce(() -> 0, NumberUtils::add);
   }
 
   /**
    * Sums up the results provided by a given `mapper` function.
    *
    * <p>This is a shorthand for `.map(mapper).sum()`, with the difference that here the numerical
-   * return type of the `mapper` is ensured.</p>
+   * return type of the `mapper` is ensured.
    *
    * @param mapper function that returns the numbers to sum up
    * @param <R> the numeric type that is returned by the `mapper` function
@@ -400,12 +383,7 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   @Contract(pure = true)
   public <R extends Number> SortedMap<U, R> sum(SerializableFunction<X, R> mapper)
       throws Exception {
-    return this
-        .map(mapper)
-        .reduce(
-            () -> (R) (Integer) 0,
-            NumberUtils::add
-        );
+    return this.map(mapper).reduce(() -> (R) (Integer) 0, NumberUtils::add);
   }
 
   /**
@@ -421,24 +399,21 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Gets all unique values of the results.
    *
-   * <p>For example, this can be used together with the OSMContributionView to get the total
-   * amount of unique users editing specific feature types.</p>
+   * <p>For example, this can be used together with the OSMContributionView to get the total amount
+   * of unique users editing specific feature types.
    *
    * @return the set of distinct values
    */
   @Contract(pure = true)
   public SortedMap<U, Set<X>> uniq() throws Exception {
     return this.reduce(
-        MapReducer::uniqIdentitySupplier,
-        MapReducer::uniqAccumulator,
-        MapReducer::uniqCombiner
-    );
+        MapReducer::uniqIdentitySupplier, MapReducer::uniqAccumulator, MapReducer::uniqCombiner);
   }
 
   /**
    * Gets all unique values of the results provided by a given mapper function.
    *
-   * <p>This is a shorthand for `.map(mapper).uniq()`.</p>
+   * <p>This is a shorthand for `.map(mapper).uniq()`.
    *
    * @param mapper function that returns some values
    * @param <R> the type that is returned by the `mapper` function
@@ -453,7 +428,7 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Counts all unique values of the results.
    *
    * <p>For example, this can be used together with the OSMContributionView to get the number of
-   * unique users editing specific feature types.</p>
+   * unique users editing specific feature types.
    *
    * @return the set of distinct values
    */
@@ -466,16 +441,14 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Calculates the averages of the results.
    *
    * <p>The current data values need to be numeric (castable to "Number" type), otherwise a runtime
-   * exception will be thrown.</p>
+   * exception will be thrown.
    *
    * @return the average of the current data
    * @throws UnsupportedOperationException if the data cannot be cast to numbers
    */
   @Contract(pure = true)
   public SortedMap<U, Double> average() throws Exception {
-    return this
-        .makeNumeric()
-        .average(n -> n);
+    return this.makeNumeric().average(n -> n);
   }
 
   /**
@@ -494,33 +467,30 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Calculates the weighted average of the results provided by the `mapper` function.
    *
-   * <p>The mapper must return an object of the type `WeightedValue` which contains a numeric
-   * value associated with a (floating point) weight.</p>
+   * <p>The mapper must return an object of the type `WeightedValue` which contains a numeric value
+   * associated with a (floating point) weight.
    *
    * @param mapper function that gets called for each entity snapshot or modification, needs to
-   *        return the value and weight combination of numbers to average
+   *     return the value and weight combination of numbers to average
    * @return the weighted average of the numbers returned by the `mapper` function
    */
   @Contract(pure = true)
   public SortedMap<U, Double> weightedAverage(SerializableFunction<X, WeightedValue> mapper)
       throws Exception {
     return transformSortedMap(
-        this.map(mapper).reduce(
-            PayloadWithWeight::identitySupplier,
-            PayloadWithWeight::accumulator,
-            PayloadWithWeight::combiner
-        ),
-        x -> x.num / x.weight
-    );
+        this.map(mapper)
+            .reduce(
+                PayloadWithWeight::identitySupplier,
+                PayloadWithWeight::accumulator,
+                PayloadWithWeight::combiner),
+        x -> x.num / x.weight);
   }
 
   /**
    * Returns an estimate of the median of the results.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @return estimated median
    */
@@ -532,10 +502,8 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Returns an estimate of the median of the results after applying the given map function.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @param mapper function that returns the numbers to generate the mean for
    * @return estimated median
@@ -549,10 +517,8 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Returns an estimate of a requested quantile of the results.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @param q the desired quantile to calculate (as a number between 0 and 1)
    * @return estimated quantile boundary
@@ -566,10 +532,8 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Returns an estimate of a requested quantile of the results after applying the given map
    * function.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @param mapper function that returns the numbers to generate the quantile for
    * @param q the desired quantile to calculate (as a number between 0 and 1)
@@ -577,22 +541,16 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    */
   @Contract(pure = true)
   public <R extends Number> SortedMap<U, Double> estimatedQuantile(
-      SerializableFunction<X, R> mapper,
-      double q
-  ) throws Exception {
+      SerializableFunction<X, R> mapper, double q) throws Exception {
     return transformSortedMap(
-        this.estimatedQuantiles(mapper),
-        quantileFunction -> quantileFunction.applyAsDouble(q)
-    );
+        this.estimatedQuantiles(mapper), quantileFunction -> quantileFunction.applyAsDouble(q));
   }
 
   /**
    * Returns an estimate of the quantiles of the results.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @param q the desired quantiles to calculate (as a collection of numbers between 0 and 1)
    * @return estimated quantile boundaries
@@ -605,10 +563,8 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Returns an estimate of the quantiles of the results after applying the given map function.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @param mapper function that returns the numbers to generate the quantiles for
    * @param q the desired quantiles to calculate (as a collection of numbers between 0 and 1)
@@ -616,26 +572,22 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    */
   @Contract(pure = true)
   public <R extends Number> SortedMap<U, List<Double>> estimatedQuantiles(
-      SerializableFunction<X, R> mapper,
-      Iterable<Double> q
-  ) throws Exception {
+      SerializableFunction<X, R> mapper, Iterable<Double> q) throws Exception {
     return transformSortedMap(
         this.estimatedQuantiles(mapper),
-        quantileFunction -> StreamSupport.stream(q.spliterator(), false)
-            .mapToDouble(Double::doubleValue)
-            .map(quantileFunction)
-            .boxed()
-            .collect(Collectors.toList())
-    );
+        quantileFunction ->
+            StreamSupport.stream(q.spliterator(), false)
+                .mapToDouble(Double::doubleValue)
+                .map(quantileFunction)
+                .boxed()
+                .collect(Collectors.toList()));
   }
 
   /**
    * Returns a function that computes estimates of arbitrary quantiles of the results.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @return a function that computes estimated quantile boundaries
    */
@@ -648,18 +600,15 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Returns a function that computes estimates of arbitrary quantiles of the results after applying
    * the given map function.
    *
-   * <p>
-   * Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
+   * <p>Uses the t-digest algorithm to calculate estimates for the quantiles in a map-reduce system:
    * https://raw.githubusercontent.com/tdunning/t-digest/master/docs/t-digest-paper/histo.pdf
-   * </p>
    *
    * @param mapper function that returns the numbers to generate the quantiles for
    * @return a function that computes estimated quantile boundaries
    */
   @Contract(pure = true)
   public <R extends Number> SortedMap<U, DoubleUnaryOperator> estimatedQuantiles(
-      SerializableFunction<X, R> mapper
-  ) throws Exception {
+      SerializableFunction<X, R> mapper) throws Exception {
     return transformSortedMap(this.digest(mapper), d -> d::quantile);
   }
 
@@ -670,11 +619,11 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   @Contract(pure = true)
   private <R extends Number> SortedMap<U, TDigest> digest(SerializableFunction<X, R> mapper)
       throws Exception {
-    return this.map(mapper).reduce(
-        TDigestReducer::identitySupplier,
-        TDigestReducer::accumulator,
-        TDigestReducer::combiner
-    );
+    return this.map(mapper)
+        .reduce(
+            TDigestReducer::identitySupplier,
+            TDigestReducer::accumulator,
+            TDigestReducer::combiner);
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -685,14 +634,14 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Iterates over the results of this data aggregation.
    *
    * <p>This method can be handy for testing purposes. But note that since the `action` doesn't
-   * produce a return value, it must facilitate its own way of producing output.</p>
+   * produce a return value, it must facilitate its own way of producing output.
    *
    * <p>If you'd like to use such a "forEach" in a non-test use case, use `.collect().forEach()` or
-   * `.stream().forEach()`  instead.</p>
+   * `.stream().forEach()` instead.
    *
    * @param action function that gets called for each transformed data entry
    * @deprecated only for testing purposes. use `.collect().forEach()` or `.stream().forEach()`
-   *             instead
+   *     instead
    */
   @Deprecated
   public void forEach(SerializableBiConsumer<U, List<X>> action) throws Exception {
@@ -709,8 +658,7 @@ public class MapAggregator<U extends Comparable<U>, X> implements
     return this.reduce(
         MapReducer::collectIdentitySupplier,
         MapReducer::collectAccumulator,
-        MapReducer::collectCombiner
-    );
+        MapReducer::collectCombiner);
   }
 
   /**
@@ -720,22 +668,26 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    */
   @Contract(pure = true)
   public Stream<Entry<U, X>> stream() throws Exception {
-    return this.mapReducer.stream().map(d -> new Entry<U, X>() {
-      @Override
-      public U getKey() {
-        return d.getKey();
-      }
+    return this.mapReducer
+        .stream()
+        .map(
+            d ->
+                new Entry<U, X>() {
+                  @Override
+                  public U getKey() {
+                    return d.getKey();
+                  }
 
-      @Override
-      public X getValue() {
-        return d.getValue();
-      }
+                  @Override
+                  public X getValue() {
+                    return d.getValue();
+                  }
 
-      @Override
-      public X setValue(X value) {
-        throw new RuntimeException("cannot modify the value of this entry");
-      }
-    });
+                  @Override
+                  public X setValue(X value) {
+                    throw new RuntimeException("cannot modify the value of this entry");
+                  }
+                });
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -746,18 +698,21 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * Set an arbitrary `map` transformation function.
    *
    * @param mapper function that will be applied to each data entry (osm entity snapshot or
-   *        contribution)
+   *     contribution)
    * @param <R> an arbitrary data type which is the return type of the transformation `map` function
    * @return a modified copy of this MapAggregator object operating on the transformed type R
    */
   @Contract(pure = true)
   public <R> MapAggregator<U, R> map(SerializableFunction<X, R> mapper) {
-    return this.copyTransform(this.mapReducer.map(inData -> {
-      //noinspection unchecked – trick/hack to replace mapped values without copying pair objects
-      Pair<U,R> outData = (Pair<U,R>)inData;
-      outData.setValue(mapper.apply(inData.getValue()));
-      return outData;
-    }));
+    return this.copyTransform(
+        this.mapReducer.map(
+            inData -> {
+              //noinspection unchecked – trick/hack to replace mapped values without copying pair
+              // objects
+              Pair<U, R> outData = (Pair<U, R>) inData;
+              outData.setValue(mapper.apply(inData.getValue()));
+              return outData;
+            }));
   }
 
   /**
@@ -765,39 +720,38 @@ public class MapAggregator<U extends Comparable<U>, X> implements
    * of results per input data entry.
    *
    * <p>The results of this function will be "flattened", meaning that they can be for example
-   * transformed again by setting additional `map` functions.</p>
+   * transformed again by setting additional `map` functions.
    *
    * @param flatMapper function that will be applied to each data entry (osm entity snapshot or
-   *        contribution) and returns a list of results
+   *     contribution) and returns a list of results
    * @param <R> an arbitrary data type which is the return type of the transformation `map` function
    * @return a modified copy of this MapAggregator object operating on the transformed type R
    */
   @Contract(pure = true)
   public <R> MapAggregator<U, R> flatMap(SerializableFunction<X, Iterable<R>> flatMapper) {
-    return this.copyTransform(this.mapReducer.flatMap(inData -> {
-      List<Pair<U, R>> outData = new LinkedList<>();
-      flatMapper.apply(inData.getValue()).forEach(flatMappedData ->
-          outData.add(new MutablePair<U, R>(
-              inData.getKey(),
-              flatMappedData
-          ))
-      );
-      return outData;
-    }));
+    return this.copyTransform(
+        this.mapReducer.flatMap(
+            inData -> {
+              List<Pair<U, R>> outData = new LinkedList<>();
+              flatMapper
+                  .apply(inData.getValue())
+                  .forEach(
+                      flatMappedData ->
+                          outData.add(new MutablePair<U, R>(inData.getKey(), flatMappedData)));
+              return outData;
+            }));
   }
 
   /**
    * Adds a custom arbitrary filter that gets executed in the current transformation chain.
    *
-   * @param f the filter function that determines if the respective data should be passed on
-   *        (when f returns true) or discarded (when f returns false)
+   * @param f the filter function that determines if the respective data should be passed on (when f
+   *     returns true) or discarded (when f returns false)
    * @return a modified copy of this object (can be used to chain multiple commands together)
    */
   @Contract(pure = true)
   public MapAggregator<U, X> filter(SerializablePredicate<X> f) {
-    return this.copyTransform(this.mapReducer.filter(data ->
-      f.test(data.getValue())
-    ));
+    return this.copyTransform(this.mapReducer.filter(data -> f.test(data.getValue())));
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -809,43 +763,38 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   /**
    * Map-reduce routine with built-in aggregation.
    *
-   * <p>
-   * This can be used to perform an arbitrary reduce routine whose results are aggregated separately
-   * according to some custom index value.
-   * </p>
+   * <p>This can be used to perform an arbitrary reduce routine whose results are aggregated
+   * separately according to some custom index value.
    *
-   * <p>
-   * The combination of the used types and identity/reducer functions must make "mathematical"
+   * <p>The combination of the used types and identity/reducer functions must make "mathematical"
    * sense:
-   * <ul>
-   *   <li>the accumulator and combiner functions need to be associative,</li>
-   *   <li>values generated by the identitySupplier factory must be an identity for the combiner
-   *   function: `combiner(identitySupplier(),x)` must be equal to `x`,</li>
-   *   <li>the combiner function must be compatible with the accumulator function:
-   *   `combiner(u, accumulator(identitySupplier(), t)) == accumulator.apply(u, t)`</li>
-   * </ul>
-   * </p>
    *
-   * <p>
-   * Functionally, this interface is similar to Java8 Stream's <a
+   * <ul>
+   *   <li>the accumulator and combiner functions need to be associative,
+   *   <li>values generated by the identitySupplier factory must be an identity for the combiner
+   *       function: `combiner(identitySupplier(),x)` must be equal to `x`,
+   *   <li>the combiner function must be compatible with the accumulator function: `combiner(u,
+   *       accumulator(identitySupplier(), t)) == accumulator.apply(u, t)`
+   * </ul>
+   *
+   * <p>Functionally, this interface is similar to Java8 Stream's <a
    * href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html#reduce-U-java.util.function.BiFunction-java.util.function.BinaryOperator-">reduce(identity,accumulator,combiner)</a>
    * interface.
-   * </p>
    *
    * @param identitySupplier a factory function that returns a new starting value to reduce results
-   *        into (e.g. when summing values, one needs to start at zero)
+   *     into (e.g. when summing values, one needs to start at zero)
    * @param accumulator a function that takes a result from the `mapper` function (type &lt;R&gt;)
-   *        and an accumulation value (type &lt;S&gt;, e.g. the result of `identitySupplier()`)
-   *        and returns the "sum" of the two; contrary to `combiner`, this function is allowed to
-   *        alter (mutate) the state of the accumulation value (e.g. directly adding new values to
-   *        an existing Set object)
+   *     and an accumulation value (type &lt;S&gt;, e.g. the result of `identitySupplier()`) and
+   *     returns the "sum" of the two; contrary to `combiner`, this function is allowed to alter
+   *     (mutate) the state of the accumulation value (e.g. directly adding new values to an
+   *     existing Set object)
    * @param combiner a function that calculates the "sum" of two &lt;S&gt; values; <b>this function
-   *        must be pure (have no side effects), and is not allowed to alter the state of the two
-   *        input objects it gets!</b>
+   *     must be pure (have no side effects), and is not allowed to alter the state of the two input
+   *     objects it gets!</b>
    * @param <S> the data type used to contain the "reduced" (intermediate and final) results
    * @return the result of the map-reduce operation, the final result of the last call to the
-   *         `combiner` function, after all `mapper` results have been aggregated (in the
-   *         `accumulator` and `combiner` steps)
+   *     `combiner` function, after all `mapper` results have been aggregated (in the `accumulator`
+   *     and `combiner` steps)
    */
   @Contract(pure = true)
   public <S> SortedMap<U, S> reduce(
@@ -853,85 +802,77 @@ public class MapAggregator<U extends Comparable<U>, X> implements
       SerializableBiFunction<S, X, S> accumulator,
       SerializableBinaryOperator<S> combiner)
       throws Exception {
-    SortedMap<U, S> result = this.mapReducer.reduce(
-        TreeMap::new,
-        (TreeMap<U, S> m, Pair<U, X> r) -> {
-          m.put(r.getKey(), accumulator.apply(
-              m.getOrDefault(r.getKey(), identitySupplier.get()),
-              r.getValue()
-          ));
-          return m;
-        },
-        (a,b) -> {
-          TreeMap<U, S> combined = new TreeMap<U, S>(a);
-          for (SortedMap.Entry<U, S> entry: b.entrySet()) {
-            combined.merge(entry.getKey(), entry.getValue(), combiner);
-          }
-          return combined;
-        }
-    );
+    SortedMap<U, S> result =
+        this.mapReducer.reduce(
+            TreeMap::new,
+            (TreeMap<U, S> m, Pair<U, X> r) -> {
+              m.put(
+                  r.getKey(),
+                  accumulator.apply(
+                      m.getOrDefault(r.getKey(), identitySupplier.get()), r.getValue()));
+              return m;
+            },
+            (a, b) -> {
+              TreeMap<U, S> combined = new TreeMap<U, S>(a);
+              for (SortedMap.Entry<U, S> entry : b.entrySet()) {
+                combined.merge(entry.getKey(), entry.getValue(), combiner);
+              }
+              return combined;
+            });
     // fill nodata entries with "0"
     //noinspection unchecked – all zerofills must "add up" to <U>
-    Collection<U> zerofill = (Collection<U>) this.completeZerofill(
-        result.keySet(),
-        Lists.reverse(this.zerofill)
-    );
-    zerofill.forEach(zerofillKey -> {
-      if (!result.containsKey(zerofillKey)) {
-        result.put(zerofillKey, identitySupplier.get());
-      }
-    });
+    Collection<U> zerofill =
+        (Collection<U>) this.completeZerofill(result.keySet(), Lists.reverse(this.zerofill));
+    zerofill.forEach(
+        zerofillKey -> {
+          if (!result.containsKey(zerofillKey)) {
+            result.put(zerofillKey, identitySupplier.get());
+          }
+        });
     return result;
   }
 
   /**
    * Map-reduce routine with built-in aggregation (shorthand syntax).
-   * <p>
-   * This can be used to perform an arbitrary reduce routine whose results are aggregated
-   * separately according to some custom index value.
-   * </p>
    *
-   * <p>
-   * This variant is shorter to program than `reduce(identitySupplier, accumulator, combiner)`,
+   * <p>This can be used to perform an arbitrary reduce routine whose results are aggregated
+   * separately according to some custom index value.
+   *
+   * <p>This variant is shorter to program than `reduce(identitySupplier, accumulator, combiner)`,
    * but can only be used if the result type is the same as the current `map`ped type &lt;X&gt;.
    * Also this variant can be less efficient since it cannot benefit from the mutability freedoms
    * the accumulator+combiner approach has.
-   * </p>
    *
-   * <p>
-   * The combination of the used types and identity/reducer functions must make "mathematical"
+   * <p>The combination of the used types and identity/reducer functions must make "mathematical"
    * sense:
-   * <ul>
-   *   <li>the accumulator and combiner functions need to be associative,</li>
-   *   <li>values generated by the identitySupplier factory must be an identity for the combiner
-   *   function: `combiner(identitySupplier(),x)` must be equal to `x`,</li>
-   *   <li>the combiner function must be compatible with the accumulator function:
-   *   `combiner(u, accumulator(identitySupplier(), t)) == accumulator.apply(u, t)`</li>
-   * </ul>
-   * </p>
    *
-   * <p>
-   * Functionally, this interface is similar to Java8 Stream's <a
+   * <ul>
+   *   <li>the accumulator and combiner functions need to be associative,
+   *   <li>values generated by the identitySupplier factory must be an identity for the combiner
+   *       function: `combiner(identitySupplier(),x)` must be equal to `x`,
+   *   <li>the combiner function must be compatible with the accumulator function: `combiner(u,
+   *       accumulator(identitySupplier(), t)) == accumulator.apply(u, t)`
+   * </ul>
+   *
+   * <p>Functionally, this interface is similar to Java8 Stream's <a
    * href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html#reduce-U-java.util.function.BiFunction-java.util.function.BinaryOperator-">reduce(identity,accumulator,combiner)</a>
    * interface.
-   * </p>
    *
    * @param identitySupplier a factory function that returns a new starting value to reduce results
-   *        into (e.g. when summing values, one needs to start at zero)
+   *     into (e.g. when summing values, one needs to start at zero)
    * @param accumulator a function that takes a result from the `mapper` function (type &lt;X&gt;)
-   *        and an accumulation value (also of type &lt;X&gt;, e.g. the result of
-   *        `identitySupplier()`) and returns the "sum" of the two; contrary to `combiner`, this
-   *        function is not to alter (mutate) the state of the accumulation value (e.g. directly
-   *        adding new values to an existing Set object)
+   *     and an accumulation value (also of type &lt;X&gt;, e.g. the result of `identitySupplier()`)
+   *     and returns the "sum" of the two; contrary to `combiner`, this function is not to alter
+   *     (mutate) the state of the accumulation value (e.g. directly adding new values to an
+   *     existing Set object)
    * @return the result of the map-reduce operation, the final result of the last call to the
-   *         `combiner` function, after all `mapper` results have been aggregated (in the
-   *         `accumulator` and `combiner` steps)
+   *     `combiner` function, after all `mapper` results have been aggregated (in the `accumulator`
+   *     and `combiner` steps)
    */
   @Contract(pure = true)
   public SortedMap<U, X> reduce(
-      SerializableSupplier<X> identitySupplier,
-      SerializableBinaryOperator<X> accumulator
-  ) throws Exception {
+      SerializableSupplier<X> identitySupplier, SerializableBinaryOperator<X> accumulator)
+      throws Exception {
     return this.reduce(identitySupplier, accumulator::apply, accumulator);
   }
 
@@ -949,10 +890,11 @@ public class MapAggregator<U extends Comparable<U>, X> implements
   @Contract(pure = true)
   private <V extends Comparable<V>> MapAggregator<V, X> mapIndex(
       SerializableBiFunction<U, X, V> keyMapper) {
-    return this.copyTransformKey(this.mapReducer.map(inData -> new MutablePair<>(
-        keyMapper.apply(inData.getKey(), inData.getValue()),
-        inData.getValue()
-    )));
+    return this.copyTransformKey(
+        this.mapReducer.map(
+            inData ->
+                new MutablePair<>(
+                    keyMapper.apply(inData.getKey(), inData.getValue()), inData.getValue())));
   }
 
   // calculate complete set of indices to use for zerofilling
@@ -975,26 +917,27 @@ public class MapAggregator<U extends Comparable<U>, X> implements
     if (zerofills.size() == 1) {
       return seen;
     } else {
-      Collection<?> nextLevel = this.completeZerofill(
-          nextLevelKeys,
-          zerofills.subList(1, zerofills.size())
-      );
-      return nextLevel.stream().flatMap(u ->
-          seen.stream().map(v -> new OSHDBCombinedIndex<>(u, v))
-      ).collect(Collectors.toList());
+      Collection<?> nextLevel =
+          this.completeZerofill(nextLevelKeys, zerofills.subList(1, zerofills.size()));
+      return nextLevel
+          .stream()
+          .flatMap(u -> seen.stream().map(v -> new OSHDBCombinedIndex<>(u, v)))
+          .collect(Collectors.toList());
     }
   }
 
   // transforms the values of a sorted map by a given function (similar to Stream::map)
   private <A, B> SortedMap<U, B> transformSortedMap(SortedMap<U, A> in, Function<A, B> transform) {
-    return in.entrySet().stream().collect(Collectors.toMap(
-        Entry::getKey,
-        e -> transform.apply(e.getValue()),
-        (v1, v2) -> {
-          assert false;
-          return v1;
-        },
-        TreeMap::new
-    ));
+    return in.entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Entry::getKey,
+                e -> transform.apply(e.getValue()),
+                (v1, v2) -> {
+                  assert false;
+                  return v1;
+                },
+                TreeMap::new));
   }
 }

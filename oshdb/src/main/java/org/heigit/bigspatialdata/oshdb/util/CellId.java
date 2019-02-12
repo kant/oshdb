@@ -4,9 +4,7 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A wrapper class for cellIds consisting of a zoom level and an zoom-level specific id
- */
+/** A wrapper class for cellIds consisting of a zoom level and an zoom-level specific id */
 public class CellId implements Serializable {
   private static final long serialVersionUID = 1L;
 
@@ -16,8 +14,7 @@ public class CellId implements Serializable {
   private final long id;
 
   /**
-   * As every cellid is by definition linked to a zoomLevel, this class combines
-   * this information.
+   * As every cellid is by definition linked to a zoomLevel, this class combines this information.
    *
    * @param zoomLevel between 0:30
    * @param id >=0
@@ -28,7 +25,7 @@ public class CellId implements Serializable {
       // todo: what about the "-1" cell for garbage data.
       // todo: also check for id<=2^zoomLevel
     }
-    //reasonable to check, if ID fits to zoomLevel?
+    // reasonable to check, if ID fits to zoomLevel?
     this.zoomLevel = zoomLevel;
     this.id = id;
   }
@@ -47,10 +44,7 @@ public class CellId implements Serializable {
     return new CellId(zoomlevel, id);
   }
 
-  /**
-   *
-   * @return
-   */
+  /** @return */
   public long getId() {
     return this.id;
   }
@@ -83,12 +77,8 @@ public class CellId implements Serializable {
     return "CellId{" + "zoomLevel=" + zoomLevel + ", id=" + id + '}';
   }
 
-  /**
-   *
-   * @return
-   */
+  /** @return */
   public int getZoomLevel() {
     return this.zoomLevel;
   }
-
 }

@@ -6,9 +6,9 @@ import java.util.Arrays;
 public class ByteArrayWrapper {
 
   public static class InvalidProtocolBufferException extends IOException {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public InvalidProtocolBufferException(final String description) {
+    public InvalidProtocolBufferException(final String description) {
       super(description);
     }
   }
@@ -57,11 +57,11 @@ public class ByteArrayWrapper {
   public int readSInt32() throws IOException {
     return decodeZigZag32(readRawVarint32());
   }
-  
+
   public int readSInt32Delta(int last) throws IOException {
     return readSInt32() + last;
   }
-  
+
   /** Read a {@code uint32} field value from the stream. */
   public int readUInt32() throws IOException {
     return readRawVarint32();
@@ -71,6 +71,7 @@ public class ByteArrayWrapper {
   public long readSInt64() throws IOException {
     return decodeZigZag64(readRawVarint64());
   }
+
   public long readSInt64Delta(long last) throws IOException {
     return readSInt64() + last;
   }
@@ -79,17 +80,16 @@ public class ByteArrayWrapper {
   public long readUInt64() throws IOException {
     return readRawVarint64();
   }
-  
+
   public long readUInt64Delta(long last) throws IOException {
     return readUInt64() + last;
   }
 
-  /**
-   * Read a raw Varint from the stream. If larger than 32 bits, discard the upper bits.
-   */
+  /** Read a raw Varint from the stream. If larger than 32 bits, discard the upper bits. */
   public int readRawVarint32() throws IOException {
     // See implementation notes for readRawVarint64
-    fastpath: {
+    fastpath:
+    {
       int pos = bufferPos;
 
       if (bufferSize == pos) {
@@ -113,8 +113,12 @@ public class ByteArrayWrapper {
         int y = buffer[pos++];
         x ^= y << 28;
         x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28);
-        if (y < 0 && buffer[pos++] < 0 && buffer[pos++] < 0 && buffer[pos++] < 0
-            && buffer[pos++] < 0 && buffer[pos++] < 0) {
+        if (y < 0
+            && buffer[pos++] < 0
+            && buffer[pos++] < 0
+            && buffer[pos++] < 0
+            && buffer[pos++] < 0
+            && buffer[pos++] < 0) {
           break fastpath; // Will throw malformedVarint()
         }
       }
@@ -137,7 +141,8 @@ public class ByteArrayWrapper {
     // Instead of cleaning up the sign extension bits by masking eagerly,
     // we delay until we find the final (positive) byte, when we clear all
     // accumulated bits with one xor. We depend on javac to constant fold.
-    fastpath: {
+    fastpath:
+    {
       int pos = bufferPos;
 
       if (bufferSize == pos) {
@@ -165,12 +170,25 @@ public class ByteArrayWrapper {
       } else if ((x ^= ((long) buffer[pos++] << 42)) >= 0L) {
         x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28) ^ (~0L << 35) ^ (~0L << 42);
       } else if ((x ^= ((long) buffer[pos++] << 49)) < 0L) {
-        x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28) ^ (~0L << 35) ^ (~0L << 42)
-            ^ (~0L << 49);
+        x ^=
+            (~0L << 7)
+                ^ (~0L << 14)
+                ^ (~0L << 21)
+                ^ (~0L << 28)
+                ^ (~0L << 35)
+                ^ (~0L << 42)
+                ^ (~0L << 49);
       } else {
         x ^= ((long) buffer[pos++] << 56);
-        x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28) ^ (~0L << 35) ^ (~0L << 42)
-            ^ (~0L << 49) ^ (~0L << 56);
+        x ^=
+            (~0L << 7)
+                ^ (~0L << 14)
+                ^ (~0L << 21)
+                ^ (~0L << 28)
+                ^ (~0L << 35)
+                ^ (~0L << 42)
+                ^ (~0L << 49)
+                ^ (~0L << 56);
         if (x < 0L) {
           if (buffer[pos++] < 0L) {
             break fastpath; // Will throw malformedVarint()
@@ -224,7 +242,7 @@ public class ByteArrayWrapper {
    * to be varint encoded, thus always taking 10 bytes on the wire.)
    *
    * @param n An unsigned 32-bit integer, stored in a signed int because Java has no explicit
-   *        unsigned support.
+   *     unsigned support.
    * @return A signed 32-bit integer.
    */
   public static int decodeZigZag32(final int n) {
@@ -237,7 +255,7 @@ public class ByteArrayWrapper {
    * to be varint encoded, thus always taking 10 bytes on the wire.)
    *
    * @param n An unsigned 64-bit integer, stored in a signed int because Java has no explicit
-   *        unsigned support.
+   *     unsigned support.
    * @return A signed 64-bit integer.
    */
   public static long decodeZigZag64(final long n) {
@@ -255,8 +273,4 @@ public class ByteArrayWrapper {
             + "input has been truncated or that an embedded message "
             + "misreported its own length.");
   }
-
-  
-
-  
 }

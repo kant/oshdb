@@ -3,7 +3,6 @@ package org.heigit.bigspatialdata.oshdb.tool.importer.extract.data;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
 import org.heigit.bigspatialdata.oshdb.tool.importer.util.SizeEstimator;
 
 public class VF {
@@ -19,27 +18,28 @@ public class VF {
     return freq;
   }
 
-  public void write(DataOutput out) throws IOException{
+  public void write(DataOutput out) throws IOException {
     out.writeUTF(value);
     out.writeInt(freq);
   }
-  
-  public static VF read(DataInput in) throws IOException{
+
+  public static VF read(DataInput in) throws IOException {
     final String value = in.readUTF();
     final int freq = in.readInt();
-    return new VF(value,freq);
+    return new VF(value, freq);
   }
-  
+
   @Override
   public String toString() {
-    return String.format("(%s:%d)", value,freq);
+    return String.format("(%s:%d)", value, freq);
   }
-  
+
   public long estimateSize() {
-    final long size = SizeEstimator.estimatedSizeOf("") // obj_overhead
-                                                              // (vf)
-        + SizeEstimator.estimatedSizeOf(value) // value
-        + 4; // freq
+    final long size =
+        SizeEstimator.estimatedSizeOf("") // obj_overhead
+            // (vf)
+            + SizeEstimator.estimatedSizeOf(value) // value
+            + 4; // freq
     return size;
   }
 }

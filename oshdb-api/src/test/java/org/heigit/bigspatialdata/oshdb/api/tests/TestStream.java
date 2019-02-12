@@ -18,21 +18,24 @@ import org.heigit.bigspatialdata.oshdb.util.OSHDBBoundingBox;
 import org.heigit.bigspatialdata.oshdb.util.time.OSHDBTimestamps;
 import org.junit.Test;
 
-/**
- *
- */
+/** */
 public class TestStream {
   private final OSHDBDatabase oshdb;
 
-  private final OSHDBBoundingBox bbox = new OSHDBBoundingBox(8.651133,49.387611,8.6561,49.390513);
-  private final OSHDBTimestamps timestamps72 = new OSHDBTimestamps("2010-01-01", "2015-12-01", OSHDBTimestamps.Interval.MONTHLY);
+  private final OSHDBBoundingBox bbox =
+      new OSHDBBoundingBox(8.651133, 49.387611, 8.6561, 49.390513);
+  private final OSHDBTimestamps timestamps72 =
+      new OSHDBTimestamps("2010-01-01", "2015-12-01", OSHDBTimestamps.Interval.MONTHLY);
 
   public TestStream() throws Exception {
     oshdb = new OSHDBH2("./src/test/resources/test-data").multithreading(false);
   }
 
   private MapReducer<OSMContribution> createMapReducerOSMContribution() throws Exception {
-    return OSMContributionView.on(oshdb).osmType(OSMType.WAY).osmTag("building", "yes").areaOfInterest(bbox);
+    return OSMContributionView.on(oshdb)
+        .osmType(OSMType.WAY)
+        .osmTag("building", "yes")
+        .areaOfInterest(bbox);
   }
 
   @Test
@@ -41,9 +44,10 @@ public class TestStream {
     this.createMapReducerOSMContribution()
         .timestamps(timestamps72)
         .stream()
-        .forEach(contribution -> {
-          result.put(contribution.getEntityAfter().getId(), true);
-        });
+        .forEach(
+            contribution -> {
+              result.put(contribution.getEntityAfter().getId(), true);
+            });
     assertEquals(42, result.entrySet().size());
   }
 
@@ -66,9 +70,7 @@ public class TestStream {
         .timestamps(timestamps72)
         .aggregateByTimestamp()
         .stream()
-        .forEach(entry ->
-          result.put(entry.getValue().getEntityAfter().getId(), true)
-        );
+        .forEach(entry -> result.put(entry.getValue().getEntityAfter().getId(), true));
     assertEquals(42, result.entrySet().size());
   }
 }

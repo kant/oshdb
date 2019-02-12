@@ -13,10 +13,10 @@ interface MapAggregatable<M, X> {
    * Sets a custom aggregation function that is used to (further) group output results into.
    *
    * @param indexer a function that will be called for each input element and returns a value that
-   *        will be used to group the results by
+   *     will be used to group the results by
    * @param <U> data type of the values used to aggregate the output. has to be a comparable type
    * @return a MapAggregator object with the equivalent state (settings, filters, map function,
-   *         etc.) of the current MapReducer object
+   *     etc.) of the current MapReducer object
    */
   <U extends Comparable<U>> M aggregateBy(SerializableFunction<X, U> indexer);
 }

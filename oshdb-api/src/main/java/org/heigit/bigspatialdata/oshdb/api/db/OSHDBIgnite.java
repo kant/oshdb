@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.OptionalLong;
-
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -21,9 +20,7 @@ import org.heigit.bigspatialdata.oshdb.osm.OSMType;
 import org.heigit.bigspatialdata.oshdb.util.exceptions.OSHDBTableNotFoundException;
 import org.heigit.bigspatialdata.oshdb.util.exceptions.OSHDBTimeoutException;
 
-/**
- * OSHDB database backend connector to a Ignite system.
- */
+/** OSHDB database backend connector to a Ignite system. */
 public class OSHDBIgnite extends OSHDBDatabase implements AutoCloseable {
   public enum ComputeMode {
     LocalPeek,
@@ -71,10 +68,13 @@ public class OSHDBIgnite extends OSHDBDatabase implements AutoCloseable {
   public <X extends OSHDBMapReducible> MapReducer<X> createMapReducer(Class<X> forClass) {
     MapReducer<X> mapReducer;
     Collection<String> allCaches = this.getIgnite().cacheNames();
-    Collection<String> expectedCaches = Stream.of(OSMType.values())
-        .map(TableNames::forOSMType).filter(Optional::isPresent).map(Optional::get)
-        .map(t -> t.toString(this.prefix()))
-        .collect(Collectors.toList());
+    Collection<String> expectedCaches =
+        Stream.of(OSMType.values())
+            .map(TableNames::forOSMType)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(t -> t.toString(this.prefix()))
+            .collect(Collectors.toList());
     if (!allCaches.containsAll(expectedCaches)) {
       throw new OSHDBTableNotFoundException(StringUtils.join(expectedCaches, ", "));
     }
@@ -132,7 +132,7 @@ public class OSHDBIgnite extends OSHDBDatabase implements AutoCloseable {
    * Set a timeout for queries on this ignite oshdb backend.
    *
    * <p>If a query takes longer than the given time limit, a {@link OSHDBTimeoutException} will be
-   * thrown.</p>
+   * thrown.
    *
    * @param seconds time (in seconds) a query is allowed to run for.
    * @return the current oshdb object
@@ -149,7 +149,7 @@ public class OSHDBIgnite extends OSHDBDatabase implements AutoCloseable {
    * Set a timeout for queries on this ignite oshdb backend.
    *
    * <p>If a query takes longer than the given time limit, a {@link OSHDBTimeoutException} will be
-   * thrown.</p>
+   * thrown.
    *
    * @param milliSeconds time (in milliseconds) a query is allowed to run for.
    * @return the current oshdb object
@@ -179,7 +179,7 @@ public class OSHDBIgnite extends OSHDBDatabase implements AutoCloseable {
    * Sets a callback to be executed on all ignite workers after the query has been finished.
    *
    * <p>This can be used to close connections to (temporary) databases that were used to store or
-   * retrieve intermediate data.</p>
+   * retrieve intermediate data.
    *
    * @param action the callback to execute after a query is done
    * @return the current oshdb database object
@@ -188,7 +188,6 @@ public class OSHDBIgnite extends OSHDBDatabase implements AutoCloseable {
     this.onCloseCallback = action;
     return this;
   }
-
 
   /**
    * Gets the onClose callback.

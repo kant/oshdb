@@ -1,4 +1,2 @@
-/**
- * Definitions for Grid-Cells.
- */
+/** Definitions for Grid-Cells. */
 package org.heigit.bigspatialdata.oshdb.index;

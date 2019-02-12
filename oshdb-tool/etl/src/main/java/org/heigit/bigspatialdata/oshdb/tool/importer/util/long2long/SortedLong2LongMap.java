@@ -1,5 +1,12 @@
 package org.heigit.bigspatialdata.oshdb.tool.importer.util.long2long;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.Weigher;
+import it.unimi.dsi.fastutil.longs.LongAVLTreeSet;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongSortedSet;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.DataOutputStream;
@@ -10,20 +17,10 @@ import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
 import org.heigit.bigspatialdata.oshdb.tool.importer.util.long2long.page.Page;
 import org.heigit.bigspatialdata.oshdb.tool.importer.util.long2long.page.PageLoader;
 import org.heigit.bigspatialdata.oshdb.util.byteArray.ByteArrayOutputWrapper;
 import org.roaringbitmap.RoaringBitmap;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.cache.Weigher;
-
-import it.unimi.dsi.fastutil.longs.LongAVLTreeSet;
-import it.unimi.dsi.fastutil.longs.LongIterator;
-import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
 public class SortedLong2LongMap implements LongToLongMap {
   public static class Sink implements Closeable {
@@ -58,8 +55,7 @@ public class SortedLong2LongMap implements LongToLongMap {
     }
 
     public void put(long id, long value) throws IOException {
-      if (id < 0)
-        throw new IllegalArgumentException("id must greater than 0 but is " + id);
+      if (id < 0) throw new IllegalArgumentException("id must greater than 0 but is " + id);
       if (id <= lastId)
         throw new IllegalArgumentException(
             "id must in strict acsending order lastId was " + lastId + " new id is " + id);
@@ -87,7 +83,6 @@ public class SortedLong2LongMap implements LongToLongMap {
       } catch (IOException e) {
         e.printStackTrace();
       }
-
     }
 
     private void flushPage() throws IOException {
@@ -134,10 +129,12 @@ public class SortedLong2LongMap implements LongToLongMap {
     this(pathWithoutSuffix, maxMemory, (in, size) -> in);
   }
 
-  public SortedLong2LongMap(Path pathWithoutSuffix, long maxMemory, BiFunction<byte[], Integer, byte[]> comression)
+  public SortedLong2LongMap(
+      Path pathWithoutSuffix, long maxMemory, BiFunction<byte[], Integer, byte[]> comression)
       throws IOException {
     this.rafPages = new RandomAccessFile(pathWithoutSuffix.toString() + ".map", "r");
-    PageLoader pageLoader = new PageLoader(pathWithoutSuffix.toString() + ".idx", rafPages, comression);
+    PageLoader pageLoader =
+        new PageLoader(pathWithoutSuffix.toString() + ".idx", rafPages, comression);
     this.cache = initCache(maxMemory, pageLoader);
 
     this.pageSizePower = pageLoader.getPageSizePower();
@@ -146,8 +143,7 @@ public class SortedLong2LongMap implements LongToLongMap {
   }
 
   public LongSortedSet get(LongSortedSet ids) {
-    if (ids.isEmpty())
-      return ids;
+    if (ids.isEmpty()) return ids;
 
     try {
       final LongSortedSet result = new LongAVLTreeSet();
@@ -164,21 +160,18 @@ public class SortedLong2LongMap implements LongToLongMap {
           page = cache.get(pageNumber);
           currentPageNumber = pageNumber;
         }
-        
+
         long cellId = page.get(pageOffset);
-        if(cellId >= 0)
-          result.add(cellId);
+        if (cellId >= 0) result.add(cellId);
       }
       return result;
     } catch (ExecutionException e) {
       throw new RuntimeException(e);
     }
-
   }
 
   public long get(long id) {
-    if (id < 0)
-      throw new IllegalArgumentException("id must greater than 0 but is " + id);
+    if (id < 0) throw new IllegalArgumentException("id must greater than 0 but is " + id);
 
     final int pageNumber = (int) (id / pageOffsetMask);
     final int pageOffset = (int) (id & pageOffsetMask);
@@ -202,25 +195,26 @@ public class SortedLong2LongMap implements LongToLongMap {
     }
   }
 
-  private LoadingCache<Integer, Page> initCache(long maxMemory, CacheLoader<Integer, Page> cacheLoader) {
+  private LoadingCache<Integer, Page> initCache(
+      long maxMemory, CacheLoader<Integer, Page> cacheLoader) {
     return CacheBuilder.newBuilder()
         .maximumWeight(maxMemory)
-        .weigher(new Weigher<Integer, Page>() {
-          @Override
-          public int weigh(Integer arg0, Page page) {
-            return page.weigh();
-          }
-        })
+        .weigher(
+            new Weigher<Integer, Page>() {
+              @Override
+              public int weigh(Integer arg0, Page page) {
+                return page.weigh();
+              }
+            })
         /*
         .removalListener(new RemovalListener<Integer, Page>() {
           @Override
           public void onRemoval(RemovalNotification<Integer, Page> notification) {
             System.out.println("evict "+ notification.getKey());
-            
+
           }
         })
         */
         .build(cacheLoader);
   }
-
 }

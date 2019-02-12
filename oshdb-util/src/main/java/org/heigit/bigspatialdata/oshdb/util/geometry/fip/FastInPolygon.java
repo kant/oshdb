@@ -1,7 +1,6 @@
 package org.heigit.bigspatialdata.oshdb.util.geometry.fip;
 
 import com.vividsolutions.jts.geom.*;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -26,7 +25,8 @@ abstract class FastInPolygon implements Serializable {
     }
   }
 
-  private final int AVERAGE_SEGMENTS_PER_BAND = 10; // something in the order of 10-20 works fine according to the link above
+  private final int AVERAGE_SEGMENTS_PER_BAND =
+      10; // something in the order of 10-20 works fine according to the link above
 
   private int numBands;
 
@@ -40,9 +40,8 @@ abstract class FastInPolygon implements Serializable {
   protected <P extends Geometry & Polygonal> FastInPolygon(P geom) {
     MultiPolygon mp;
     if (geom instanceof Polygon)
-      mp = (new GeometryFactory()).createMultiPolygon(new Polygon[]{(Polygon) geom});
-    else
-      mp = (MultiPolygon) geom;
+      mp = (new GeometryFactory()).createMultiPolygon(new Polygon[] {(Polygon) geom});
+    else mp = (MultiPolygon) geom;
 
     List<Segment> segments = new LinkedList<>();
     for (int i = 0; i < mp.getNumGeometries(); i++) {
@@ -62,7 +61,13 @@ abstract class FastInPolygon implements Serializable {
         }
       }
     }
-    this.numBands = Math.max(1, segments.size() / AVERAGE_SEGMENTS_PER_BAND); // possible optimization: start with this value of numBands, and if the result has over-full bands, increase numBands (e.g. x2) and do it again
+    this.numBands =
+        Math.max(
+            1,
+            segments.size()
+                / AVERAGE_SEGMENTS_PER_BAND); // possible optimization: start with this value of
+                                              // numBands, and if the result has over-full bands,
+                                              // increase numBands (e.g. x2) and do it again
     this.horizBands = new ArrayList<>(numBands);
     for (int i = 0; i < numBands; i++) this.horizBands.add(new LinkedList<>());
     this.vertBands = new ArrayList<>(numBands);
@@ -71,27 +76,53 @@ abstract class FastInPolygon implements Serializable {
     this.env = mp.getEnvelopeInternal();
     this.envWidth = env.getMaxX() - env.getMinX();
     this.envHeight = env.getMaxY() - env.getMinY();
-    segments.forEach(segment -> {
-      int startHorizBand = Math.max(0, Math.min(numBands - 1, (int) Math.floor(((segment.startY - env.getMinY()) / envHeight) * numBands)));
-      int endHorizBand = Math.max(0, Math.min(numBands - 1, (int) Math.floor(((segment.endY - env.getMinY()) / envHeight) * numBands)));
-      for (int i = Math.min(startHorizBand, endHorizBand); i <= Math.max(startHorizBand, endHorizBand); i++) {
-        horizBands.get(i).add(segment);
-      }
-      int startVertBand = Math.max(0, Math.min(numBands - 1, (int) Math.floor(((segment.startX - env.getMinX()) / envWidth) * numBands)));
-      int endVertBand = Math.max(0, Math.min(numBands - 1, (int) Math.floor(((segment.endX - env.getMinX()) / envWidth) * numBands)));
-      for (int i = Math.min(startVertBand, endVertBand); i <= Math.max(startVertBand, endVertBand); i++) {
-        vertBands.get(i).add(segment);
-      }
-    });
+    segments.forEach(
+        segment -> {
+          int startHorizBand =
+              Math.max(
+                  0,
+                  Math.min(
+                      numBands - 1,
+                      (int) Math.floor(((segment.startY - env.getMinY()) / envHeight) * numBands)));
+          int endHorizBand =
+              Math.max(
+                  0,
+                  Math.min(
+                      numBands - 1,
+                      (int) Math.floor(((segment.endY - env.getMinY()) / envHeight) * numBands)));
+          for (int i = Math.min(startHorizBand, endHorizBand);
+              i <= Math.max(startHorizBand, endHorizBand);
+              i++) {
+            horizBands.get(i).add(segment);
+          }
+          int startVertBand =
+              Math.max(
+                  0,
+                  Math.min(
+                      numBands - 1,
+                      (int) Math.floor(((segment.startX - env.getMinX()) / envWidth) * numBands)));
+          int endVertBand =
+              Math.max(
+                  0,
+                  Math.min(
+                      numBands - 1,
+                      (int) Math.floor(((segment.endX - env.getMinX()) / envWidth) * numBands)));
+          for (int i = Math.min(startVertBand, endVertBand);
+              i <= Math.max(startVertBand, endVertBand);
+              i++) {
+            vertBands.get(i).add(segment);
+          }
+        });
   }
 
   /**
-   * ported from http://geomalgorithms.com/a03-_inclusion.html
-   * which is derived from https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
+   * ported from http://geomalgorithms.com/a03-_inclusion.html which is derived from
+   * https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
    *
    * @param point
-   * @param dir   boolean: true -> horizontal test, false -> vertical test
-   * @return crossing number of this point in the chosen direction, if the value is even the point is outside of the polygon, otherwise it is inside
+   * @param dir boolean: true -> horizontal test, false -> vertical test
+   * @return crossing number of this point in the chosen direction, if the value is even the point
+   *     is outside of the polygon, otherwise it is inside
    */
   protected int crossingNumber(Point point, boolean dir) {
     return dir ? crossingNumberX(point) : crossingNumberY(point);
@@ -107,14 +138,16 @@ abstract class FastInPolygon implements Serializable {
     for (Segment segment : band) {
       // if (((V[i].y <= P.y) && (V[i+1].y > P.y))     // an upward crossing
       // || ((V[i].y > P.y) && (V[i+1].y <=  P.y))) { // a downward crossing
-      if ((segment.startY <= point.getY() && segment.endY > point.getY()) || // an upward crossing
-          (segment.startY > point.getY() && segment.endY <= point.getY())) {  // a downward crossing
+      if ((segment.startY <= point.getY() && segment.endY > point.getY())
+          || // an upward crossing
+          (segment.startY > point.getY() && segment.endY <= point.getY())) { // a downward crossing
         // compute  the actual edge-ray intersect x-coordinate
         /*float vt = (float)(P.y  - V[i].y) / (V[i+1].y - V[i].y);
         if (P.x <  V[i].x + vt * (V[i+1].x - V[i].x)) // P.x < intersect
             ++cn; // a valid crossing of y=P.y right of P.x*/
         double vt = (point.getY() - segment.startY) / (segment.endY - segment.startY);
-        if (point.getX() < segment.startX + vt * (segment.endX - segment.startX)) { // P.x < intersect
+        if (point.getX()
+            < segment.startX + vt * (segment.endX - segment.startX)) { // P.x < intersect
           cn++; // a valid crossing of y=P.y right of P.x
         }
       }
@@ -130,11 +163,14 @@ abstract class FastInPolygon implements Serializable {
 
     int cn = 0; // crossing number counter
     for (Segment segment : band) {
-      if ((segment.startX <= point.getX() && segment.endX > point.getX()) || // an "upward" crossing
-          (segment.startX > point.getX() && segment.endX <= point.getX())) {  // a "downward" crossing
+      if ((segment.startX <= point.getX() && segment.endX > point.getX())
+          || // an "upward" crossing
+          (segment.startX > point.getX()
+              && segment.endX <= point.getX())) { // a "downward" crossing
         // compute  the actual edge-ray intersect x-coordinate
         double vt = (point.getX() - segment.startX) / (segment.endX - segment.startX);
-        if (point.getY() < segment.startY + vt * (segment.endY - segment.startY)) { // P.y < intersect
+        if (point.getY()
+            < segment.startY + vt * (segment.endY - segment.startY)) { // P.y < intersect
           cn++; // a valid crossing of x=P.x below of P.y
         }
       }

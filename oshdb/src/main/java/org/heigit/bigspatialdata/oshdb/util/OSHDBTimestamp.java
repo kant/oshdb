@@ -18,8 +18,8 @@ public class OSHDBTimestamp implements Comparable<OSHDBTimestamp>, Serializable 
   public OSHDBTimestamp(Date tstamp) {
     this(tstamp.getTime() / 1000);
   }
-  
-  public void setTimestamp(long tstamp){
+
+  public void setTimestamp(long tstamp) {
     this._tstamp = tstamp;
   }
 
@@ -30,12 +30,10 @@ public class OSHDBTimestamp implements Comparable<OSHDBTimestamp>, Serializable 
 
   @Override
   public boolean equals(Object other) {
-    if (other instanceof OSHDBTimestamp)
-      return this._tstamp == ((OSHDBTimestamp)other)._tstamp;
-    else
-      return super.equals(other);
+    if (other instanceof OSHDBTimestamp) return this._tstamp == ((OSHDBTimestamp) other)._tstamp;
+    else return super.equals(other);
   }
-  
+
   public Date toDate() {
     return new Date(this._tstamp * 1000);
   }

@@ -13,12 +13,10 @@ public class SparsePage implements Page {
   @Override
   public long get(int offset) {
     return cellIds.get(offset);
-    
   }
 
   @Override
   public int weigh() {
     return cellIds.size() * 4 * 8;
   }
-
 }
